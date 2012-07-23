@@ -1,0 +1,142 @@
+<?php
+
+/**
+ *  @file
+ *  CDT Blocks
+ *
+ *  This module defines several custom blocks.
+ *
+ *  To add a new block, you'll need to do the following:
+ *    1) Add the block to the $deltas list in cdt_blocks_block $op 'list',
+ *        keyed as $delta => $info_title.
+ *    2) Create an include file at includes/cdt_blocks.block.[$delta].inc
+ *    3) Create a function in that file: cdt_blocks_view_content_[$delta].
+ *    4) Rebuild your theme to catch the new functions.
+ */
+
+/**
+ *  Implements hook_block().
+ */
+function cdt_blocks_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+     case 'list':
+      $deltas = array(
+        'issues' => t('Issues'),
+        'issue_header' => t('Issue Header Image'),
+        'issue_placeholder' => t('Issue Placeholder Image'),
+        'expert_contact' => t('Expert Contact'),
+      );
+      $blocks = array();
+      foreach ($deltas as $delta => $info) {
+        $blocks[$delta] = array(
+          'info' => $info,
+          'visibility' => 0,
+        );
+      }
+      return $blocks;
+    case 'view':
+      // Include dynamic file and function based on block $delta.
+      include_once("includes/cdt_blocks.block.$delta.inc");
+      return array(
+        'subject' => '',
+        'content' => call_user_func_array('cdt_blocks_view_content_'. $delta, array()),
+      );
+  }
+}
+
+/**
+ *  Implements hook_theme().
+ */
+function cdt_blocks_theme($existing, $type, $theme, $path) {
+  $items = array();
+  $items['cdt_blocks_issues'] = array(
+    'arguments' => array('issues' => NULL),
+    'file' => 'themes/cdt_blocks.theme.issues.inc',
+  );
+  $items['cdt_blocks_issue_header'] = array(
+    'arguments' => array('image' => NULL),
+    'file' => 'themes/cdt_blocks.theme.issue.inc',
+  );
+  $items['cdt_blocks_issue_placeholder'] = array(
+    'arguments' => array('image' => NULL),
+    'file' => 'themes/cdt_blocks.theme.issue.inc',
+  );
+  $items['cdt_blocks_expert_contact'] = array(
+    'arguments' => array('title' => NULL, 'form' => NULL),
+    'file' => 'themes/cdt_blocks.theme.expert_contact.inc',
+  );
+  return $items;
+}
+
+/**
+ *  Determine whether to display a specific block on the page. This is called by the 
+ *  "Page specific visibility settings" section on the block configuration page, when using PHP
+ *  visibility.
+ *
+ *  @param $delta
+ *    The block to display.
+ *  @return
+ *    TRUE or FALSE, depending on whether the block should be displayed on this page.
+ */
+function cdt_blocks_display($delta) {
+  $display = FALSE;
+
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $node = node_load(arg(1));
+  }
+  
+  switch ($delta) {
+    case 'global_sidebar':
+      if (!cdt_blocks_display('article_sidebar') && !cdt_blocks_display('blog_page_sidebar') && !cdt_blocks_display('tbyp_sidebar') && !cdt_blocks_display('blog_post_sidebar') && !cdt_blocks_display('expert_sidebar') && $node->type != 'parent' && $node->type != 'child' && !in_array(arg(0), array('experts', 'about', 'connect', 'media', 'admin', 'takebackyourprivacy', 'sidebartest', 'takebackyourprivacy2', 'thanks')) && !drupal_is_front_page()) {
+        $display = TRUE;
+      }
+      break;
+    case 'article_sidebar':
+      if (_cdt_blocks_is_node_type($node, array('brief', 'event', 'file', 'pr_statement', 'paper', 'planted_press', 'policy', 'press_hit', 'report', 'testimony'))) {
+        $display = TRUE;
+      }
+      break;
+    case 'blog_page_sidebar':
+      if (arg(0) == 'blog') {
+        $display = TRUE;
+      }
+      break;
+    case 'blog_post_sidebar':
+      if (_cdt_blocks_is_node_type($node, array('blog'))) {
+        $display = TRUE;
+      }
+      break;
+    case 'expert_sidebar':
+      if (_cdt_blocks_is_node_type($node, array('personnel')) && in_array($node->field_personnel_type[0]['value'], array('expert', 'staff', 'fellow'))) {
+        $display = TRUE;
+      }
+      break;
+    case 'tbyp_sidebar':
+      if (_cdt_blocks_is_node_type($node, array('privacytips', 'twitter_fact', 'funding_activity')) && in_array($node, array('thanks'))) {
+        $display = TRUE;
+      }
+      break;
+  }
+  return $display;
+}
+
+/**
+ *
+ * Helper function for cdt_display_blocks that checks if the given node is one of the given types.
+ *
+ * @param $node
+ *   If a full node page, this is populated with the loaded node object.
+ * @param $types
+ *   An array of node types.
+ * @return
+ *   Returns TRUE if node is one of the given types.
+ */
+function _cdt_blocks_is_node_type($node, $types) {
+  $is_node_type = FALSE;
+  if ($node->nid) {
+    if (in_array($node->type, $types)) {
+      $is_node_type = TRUE;
+    }
+  }
+  return $is_node_type;
+}

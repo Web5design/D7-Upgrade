@@ -1,0 +1,1189 @@
+<?php
+/**
+ *  @file
+ *  CDT Import 
+ *
+ *  This module imports content from old cdt website into Drupal.
+ */
+
+/**
+ * Implementation hook_menu().
+ */
+function cdt_import_menu() {
+/*
+  $items = array();
+  $items['admin/content/cdt_import'] = array(
+    'title' => 'CDT Import',
+    'description' => 'Import utilities',
+    'page callback' => 'cdt_import_display',
+    'access arguments' => array('access content'),
+  );
+
+  $items['admin/content/cdt_import/import_dev'] = array(
+    'title' => 'CDT Import Devlopment',
+    'description' => 'Import development',
+    'page callback' => 'cdt_import_import_dev',
+    'access arguments' => array('access content'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // Tabs:
+  $items['admin/content/cdt_import/new'] = array(
+    'title' => 'CDT Import',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/content/cdt_import/fix_grandchildren'] = array(
+    'title' => 'CDT Import Fix Grandchildren',
+    'page callback' => 'cdt_import_fix_grandchildren',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+*/
+}
+
+function cdt_import_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  //if ($op == 'presave' && $node->uid == '16') {
+   // $node->title = cdt_import_strtotitle($node->title);
+    //$node->created = strtotime($node->field_date[0]['value']);
+  //}
+}
+
+function cdt_import_display() {
+  /*
+  $results = db_query('SELECT iid FROM {cdt_import_map} WHERE type = "Blog"');
+  $iids = array();
+  while ($iid = db_fetch_object($results)) {
+    $iids[] = $iid->iid;
+  }
+  $iids_where = implode(' AND ID != ', $iids);
+  db_set_active('oldcdt');
+  $results = db_query('SELECT post_name FROM {wp_posts} WHERE ID != '.$iids_where);
+  db_set_active('default');
+  while ($missings = db_fetch_object($results)) {
+    print $missings->post_name . '<br />';
+  }
+  return '';
+  */
+}
+
+function cdt_import_form_alter(&$form, $form_state, $form_id) {
+}
+
+function cdt_import_delete_nodes() {
+  $batch = array(
+    'operations' => array(
+      //Events, Blog
+      //array('cdt_import_delete_nodes_by_type', array(array('"ArticlesPapersBooks"', '"Publications"', '"SiteMap"', '"Testimony"', '"Headlines"', '"PolicyPosts"', '"Blog"'))),
+      //array('cdt_import_delete_nodes_by_type', array(array('"PolicyPosts"'))),
+      //array('cdt_import_delete_nodes_by_type', array(array('"Blog"'))),
+      //array('cdt_import_remove_statement_links', array()),
+    ),
+    'finished' => 'cdt_import_finish_nodes',
+    'title' => t('Processing CDT REMOVE Content Batch'),
+    'init_message' => t('CDT content remove is starting.'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'error_message' => t('There was an error while importing content from cdtold to Drupal.'),
+  );
+  batch_set($batch);
+
+  // If this function was called from a form submit handler, stop here,
+  // FAPI will handle calling batch_process().
+
+  // If not called from a submit handler, add the following,
+  // noting the url the user should be sent to once the batch
+  // is finished.
+  batch_process('admin/content/node');
+}
+
+function cdt_import_generate_nodes() {
+  $batch = array(
+    'operations' => array(
+      //array('cdt_import_policy_issues', array()),
+      //array('cdt_import_events', array()),
+      //array('cdt_import_statements', array()),
+      //array('cdt_import_testimony', array()),
+      //array('cdt_import_paper', array()),
+      //array('cdt_import_pr', array()),
+      //array('cdt_import_planted_press', array()),
+      //array('cdt_import_blog', array()),
+      array('cdt_import_statement_links', array()),
+    ),
+    'finished' => 'cdt_import_finish_nodes',
+    'title' => t('Processing CDT Content Batch'),
+    'init_message' => t('CDT content import is starting.'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'error_message' => t('There was an error while importing content from cdtold to Drupal.'),
+  );
+  batch_set($batch);
+
+  // If this function was called from a form submit handler, stop here,
+  // FAPI will handle calling batch_process().
+
+  // If not called from a submit handler, add the following,
+  // noting the url the user should be sent to once the batch
+  // is finished.
+  batch_process('admin/content/node');
+}
+
+function cdt_import_finish_nodes($success, $results, $operations) {
+  if ($success) {
+    // Here we do something meaningful with the results.
+    $message = count($results) .' processed.';
+    $message .= theme('item_list', $results);
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = 'An error occurred while processing '. $error_operation[0] .' with arguments :'. print_r($error_operation[0], TRUE);
+  }
+  drupal_set_message($message);
+}
+
+function cdt_import_import_dev() {
+  //cdt_import_policy_issues();
+  //cdt_import_events();
+  //cdt_import_statements();
+  //cdt_import_testimony();
+  //cdt_import_pr();
+  //cdt_import_paper();
+  //cdt_import_planted_press();
+  //cdt_import_blog();
+  //return cdt_import_statement_links();
+  return cdt_import_generate_nodes();
+  //return cdt_import_delete_nodes();
+}
+
+function cdt_import_remove_statement_links(&$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(nid) FROM {cdt_import_map} WHERE type = "Headlines"'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT iid, nid FROM {cdt_import_map} WHERE type = "Headlines" AND nid > %d ORDER BY nid ASC', $context['sandbox']['current_node'], 0, $limit);
+//  $results = db_query('SELECT iid, nid FROM {cdt_import_map} WHERE type = "Headlines" LIMIT 1');
+  while ($content = db_fetch_object($results)) {
+    db_query('DELETE FROM content_field_pdf WHERE nid = %d', $content->nid);
+    db_query('DELETE FROM content_field_supporting_docs WHERE nid = %d', $content->nid);
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $node->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $content->nid;
+    $context['message'] = t('Now processing %iid | nid => %node', array('%iid' => $content->iid, '%node' => $content->nid));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+  }
+}
+
+function cdt_import_statement_links(&$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(nid) FROM {cdt_import_map} WHERE type = "Headlines"'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT iid, nid FROM {cdt_import_map} WHERE type = "Headlines" AND nid > %d ORDER BY nid ASC', $context['sandbox']['current_node'], 0, $limit);
+  //$results = db_query('SELECT iid, nid FROM {cdt_import_map} WHERE type = "Headlines"');
+  while ($content = db_fetch_object($results)) {
+    $node = node_load($content->nid);
+    $tmpBody = $node->body;
+    db_set_active('oldcdt');
+    $statement_links = array();
+    $statement_link_results = db_query('SELECT * FROM {Headlines_Links} WHERE HeadlineID = %d', $content->iid);
+    while ($statement_link = db_fetch_object($statement_link_results)) {
+      $statement_links[] = $statement_link;
+    }
+    db_set_active('default');
+
+    foreach ($statement_links as $statement_link) {
+      if (!empty($statement_link)) {
+        $link = array(
+          'url' => $statement_link->LinkURL,
+          'text' => $statement_link->LinkTitle
+        );
+        cdt_import_flat_page($link, &$node, TRUE);
+      }
+    }
+
+    $node->body = $tmpBody;
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $node->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $node->nid;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $node->nid, '%node' => $node->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    
+    node_save($node);
+  }
+}
+
+function cdt_import_delete_nodes_by_type($types = NULL, &$context) {
+  if (is_array($types)) {
+    $where_types = implode(' OR type = ', $types);
+    if (!isset($context['sandbox']['progress'])) {
+      $context['sandbox']['progress'] = 0;
+      $context['sandbox']['current_node'] = 0;
+      $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(nid) FROM {cdt_import_map} WHERE type = '.$where_types));
+    }
+
+    $limit = 3;
+
+    $results = db_query_range('SELECT * FROM {cdt_import_map} WHERE nid > %d AND type = '.$where_types, $context['sandbox']['current_node'], 0, $limit);
+    //$results = db_query('SELECT nid FROM {cdt_import_map} WHERE Type = '.$where_types . 'LIMIT 1');
+    while ($nid = db_fetch_object($results)) {
+      node_delete($nid->nid);
+      // Store some result for post-processing in the finished callback.
+      $context['results'][] = $nid->nid;
+
+      // Update our progress information.
+      $context['sandbox']['progress']++;
+      $context['sandbox']['current_node'] = $nid->nid;
+      $context['message'] = t('Now deleting %nid', array('%nid' => $nid->nid));
+
+      // Inform the batch engine that we are not finished,
+      // and provide an estimation of the completion level we reached.
+      if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+        $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+      }
+      db_query('DELETE FROM {cdt_import_map} WHERE nid = %d', $nid->nid);
+    }
+  }
+}
+
+function cdt_import_blog(&$context = NULL) {
+  db_set_active('oldcdt');
+
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(ID) FROM {wp_posts} WHERE post_parent = 0'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {wp_posts} WHERE post_parent = 0 AND ID > %d ORDER BY ID ASC', $context['sandbox']['current_node'], 0, $limit);
+//  $results = db_query('SELECT * FROM {wp_posts} WHERE ID = 1851');
+  while ($content_post = db_fetch_object($results)) {
+    $content = $content_post;
+    $ref_content_id = $content->ID;
+    db_set_active('oldcdt');
+    $newest_revision = db_fetch_object(db_query('SELECT * FROM {wp_posts} WHERE post_parent = %d AND post_type = "revision" ORDER BY ID DESC LIMIT 1', $content->id));
+    db_set_active('default');
+    if ($newest_revision) {
+      $newest_revision->post_author = $content->post_author;
+      $content = $newest_revision;
+    }
+
+    $nodeTmp = new stdClass();
+    $nodeTmp->field_date[0]['value'] = str_replace(' ', 'T', $content->post_date_gmt);
+
+    cdt_import_blog_get_user($content->post_author, &$nodeTmp);
+    cdt_import_get_links($ref_content_id, &$nodeTmp, 'all');
+    cdt_import_get_taxonomy($ref_content_id, &$nodeTmp);
+
+    $nodeTmp->title = strip_tags($content->post_title);
+    $nodeTmp->body = $content->post_content;
+
+    $nodeTmp->teaser = node_teaser($node->body);
+
+    $nodeTmp->type = 'blog';
+    $nodeTmp->status = 1;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    cdt_import_blog_comments($ref_content_id, $nodeTmp);
+    db_query('UPDATE {node} SET comment = 2 WHERE nid = %d', $nodeTmp->nid);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $ref_content_id;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $ref_content_id, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $ref_content_id, 'type' => 'Blog');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_blog_comments($post_id, $nodeTmp) {
+  db_set_active('oldcdt');
+  $results = db_query('SELECT * FROM {wp_comments} WHERE comment_type = "" AND comment_approved <> "spam" AND comment_post_ID = %d', $post_id);
+  db_set_active('default');
+
+  $has_comment = FALSE;
+  while ($content = db_fetch_object($results)) {
+    $comment = array();
+    $comment['nid'] = $nodeTmp->nid;
+    if ($content->user_id > 0) {
+      $author = cdt_import_blog_get_user($content->user_id, &$nodeTmp, FALSE);
+      $comment['uid'] = $author->uid;
+      $comment['name'] = $author->name;
+      $comment['mail'] = $author->mail;
+    }
+
+    if (empty($comment['uid'])) {
+      $comment['name'] = $content->comment_author;
+      $comment['uid'] = 0;
+      $comment['mail'] = $content->comment_author_email;
+    }
+
+    $comment['comment'] = $content->comment_content;
+    $comment['hostname'] = $content->comment_author_IP;
+    $comment['timestamp'] = strtotime($content->comment_date_gmt);
+    $comment['homepage'] = $content->comment_author_url;
+    $comment['status'] = 1;
+    comment_save($comment);
+    $has_comment = TRUE;
+  }
+  return $has_comment;
+}
+
+function cdt_import_get_taxonomy($post_id, &$nodeTmp) {
+  db_set_active('oldcdt');
+  $results = db_query('SELECT tax_term.term_id, tax_term.taxonomy FROM {wp_term_taxonomy} as tax_term INNER JOIN {wp_term_relationships} as term_rel ON tax_term.term_taxonomy_id = term_rel.term_taxonomy_id WHERE term_rel.object_id = %d', $post_id);
+  while ($term_id = db_fetch_object($results)) {
+    $terms[$term_id->taxonomy][] = db_result(db_query('SELECT name FROM {wp_terms} WHERE term_id = %d', $term_id->term_id));
+  }
+  db_set_active('default');
+  if (!empty($terms['category'])) {
+    foreach ($terms['category'] as $term) {
+      if ($term != 'CDT' AND $term != '') {
+        switch ($term) {
+          case 'Standards &amp; Governance':
+          case 'Internet Neutrality':
+            $parent_id = 76;
+            break;
+          case 'Security &#038; Freedom':
+            $parent_id = 75;
+            break;
+          case 'Spyware':
+          case 'Consumer Privacy':
+            $parent_id = 78;
+            break;
+          case 'Digital Copyright':
+            $parent_id = 80;
+            break;
+          case 'Free Expression':
+            $parent_id = 77;
+            break;
+          case 'Health Privacy':
+            $parent_id = 79;
+            break;
+          case 'International':
+            $parent_id = 520;
+            break;
+          case 'Open Government':
+            $parent_id = 81;
+            break;
+        }
+        $nodeTmp->field_parent[0] = array('nid' => $parent_id);
+      }
+    }
+  }
+
+  if (!empty($terms['post_tag'])) {
+    foreach ($terms['post_tag'] as $term) {
+      if ($term != "" OR !empty($term)) {
+        $tmp_term = db_fetch_object(db_query('SELECT * FROM {term_data} WHERE name = "%s" AND vid = %d', $term, 3));
+        if (!$tmp_term) {
+          $tmp_term = array('vid' => 3, 'name' => $term);
+          taxonomy_save_term($tmp_term);
+          $tmp_term = db_fetch_object(db_query('SELECT * FROM {term_data} WHERE name = "%s" AND vid = %d', $term, 3));
+        }
+        $nodeTmp->taxonomy[$tmp_term->tid] = $tmp_term;
+      }
+    }
+  }
+}
+
+function cdt_import_blog_get_user($post_author, &$nodeTmp, $attach = TRUE) {
+  if ($post_author == 1) {
+    $nodeTmp->uid = 1;
+    $nodeTmp->name = 'admin';
+    return;
+  }
+  db_set_active('oldcdt');
+  $wp_user = db_fetch_object(db_query('SELECT * FROM {wp_users} WHERE ID = %d', $post_author));
+  db_set_active('default');
+
+  $drupal_user = db_fetch_object(db_query('SELECT uid, name FROM {users} WHERE mail = "%s"', $wp_user->user_email));
+
+  if (!$drupal_user) {
+    $drupal_user = db_fetch_object(db_query('SELECT uid, name FROM {users} WHERE name LIKE "%s"', $wp_user->display_name));
+    if (!$drupal_user) {
+      $drupal_user = new stdClass();
+      $drupal_user->status = 1;
+      $drupal_user->name = $wp_user->user_login;
+      $drupal_user->mail = $wp_user->user_email;
+      $drupal_user = user_save($drupal_user, array('name' => $wp_user->display_name, 'mail' => $wp_user->user_email, 'status' => 1));
+    }
+  }
+
+  $author = db_result(db_query('SELECT nid FROM node WHERE title LIKE "%s"', $drupal_user->name));
+  if ($author) {
+    $nodeTmp->field_author[0] = array('nid' => $author);
+  }
+
+  if (!$attach) {
+    return $drupal_user;
+  }
+  else {
+    $nodeTmp->uid = $drupal_user->uid;
+    $nodeTmp->name = $drupal_user->name;
+  }
+}
+
+function cdt_import_planted_press(&$context) {
+  db_set_active('oldcdt');
+
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(ABPID) FROM {ArticlesPapersBooks}'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {ArticlesPapersBooks} WHERE ABPID > %d', $context['sandbox']['current_node'], 0, $limit);
+  //$results = db_query('SELECT * FROM {ArticlesPapersBooks} WHERE ABPID = 11 LIMIT 1');
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  while ($content = db_fetch_object($results)) {
+    $nodeTmp = new stdClass();
+    $nodeTmp->body = strip_tags($content->LineItem);
+    $nodeTmp->title = $nodeTmp->body;
+    $nodeTmp->created = $content->PublicationDate;
+    $nodeTmp->field_planted_press_type[0]['value'] = 'oped';
+    cdt_import_get_links($content->LineItem, &$nodeTmp, 'all');
+
+    $author_issue_map = cdt_import_get_issue_mapping('users');
+    foreach ($author_issue_map as $author => $author_issue) {
+      if (preg_match("/$author/si", $nodeTmp->body)) {
+        $nodeTmp->field_author[0] = array('nid' => $author_issue['author_nid']);
+        $nodeTmp->field_parent[0] = array('nid' => $author_issue['issue_nid']);
+        break;
+      }
+    }
+
+    $nodeTmp->field_date[0]['value'] = str_replace(' ', 'T', $content->PublicationDate);
+    $nodeTmp->teaser = node_teaser($node->body);
+
+    $nodeTmp->type = 'planted_press';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $content->ABPID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $content->ABPID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $content->ABPID, 'type' => 'ArticlesPapersBooks');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_paper(&$context = NULL) {
+  db_set_active('oldcdt');
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(PublicationID) FROM {Publications}'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {Publications} WHERE PublicationID > %d', $context['sandbox']['current_node'], 0, $limit);
+  //$results = db_query('SELECT * FROM {Publications} LIMIT 1');
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  while ($publication = db_fetch_object($results)) {
+    $nodeTmp = new stdClass();
+    $nodeTmp->title = strip_tags($publication->Title);
+    cdt_import_flat_page(array('url' => $publication->URL), &$nodeTmp);
+    if (empty($nodeTmp->body)) {
+      $nodeTmp->body = $publication->Title;
+    }
+
+    $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+    $nodeTmp->teaser = node_teaser($node->body);
+
+    $nodeTmp->type = 'paper';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $publication->PublicationID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $publication->PublicationID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $publication->PublicationID, 'type' => 'Publications');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_pr(&$context) {
+  db_set_active('oldcdt');
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(PageID) FROM {SiteMap} WHERE Title LIKE "Press Release"'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {SiteMap} WHERE Title LIKE "Press Release" AND PageID > %d', $context['sandbox']['current_node'], 0, $limit);
+//  $results = db_query('SELECT * FROM {SiteMap} WHERE Title LIKE "Press Release" LIMIT 1');
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  $issue_map = cdt_import_get_issue_mapping('terms');
+  while ($press_release = db_fetch_object($results)) {
+    $press_release->IntroText = trim($press_release->IntroText);
+
+    $nodeTmp = new stdClass();
+
+    // Get parent issue id.
+    foreach ($issue_map as $issue_nid => $issues) {
+      $issue_string = implode('|', $issues);
+      if (preg_match("/$issue_string/si", $press_release->IntroText)) {
+        $nodeTmp->field_parent[0] = array('nid' => $issue_nid);
+        break;
+      }
+    }
+
+    preg_match('/<h2>(.*?)<\/h2>/si', $press_release->IntroText, $title);
+    $press_release->IntroText = str_replace($title[0], '', $press_release->IntroText);
+    $nodeTmp->title = $title[1];
+
+    // Get the date.
+    preg_match('/For immediate release:<br \/>(.*?)<\/p>/si', $press_release->IntroText, $date);
+    $press_release->IntroText = trim(str_replace($date[0], '', $press_release->IntroText));
+    $nodeTmp->created = strtotime($date[1]);
+    $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+    $nodeTmp->field_pr_statement_type[0]['value'] = 'pr';
+
+    $nodeTmp->body = $press_release->IntroText;
+    $nodeTmp->teaser = node_teaser($press_release->IntroText);
+
+    $nodeTmp->type = 'pr_statement';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $press_release->PageID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $press_release->PageID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $press_release->PageID, 'type' => 'SiteMap');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_testimony(&$context = NULL) {
+  db_set_active('oldcdt');
+  $results = db_query('SELECT IntroText FROM {SiteMap} WHERE PageID = 114 LIMIT 1');
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  while ($testimony_raw = db_fetch_object($results)) {
+    $dom = new domDocument;
+    @$dom->loadHTML($testimony_raw->IntroText);
+    $dom->preserveWhiteSpace = false;
+    $testimony_content = $dom->getElementsByTagname('tr');
+
+    if (!isset($context['sandbox']['progress'])) {
+      $context['sandbox']['progress'] = 0;
+      $context['sandbox']['current_node'] = 0;
+      $max_count = 0;
+      foreach ($testimony_content as $testimony_body) {
+        $max_count++;
+      }
+      $context['sandbox']['max'] = $max_count;
+    }
+
+    while ($context['sandbox']['progress'] < $context['sandbox']['max']) {
+      $testimony_body = $testimony_content->item($context['sandbox']['progress']);
+      $nodeTmp = new stdClass();
+      $nodeTmp->type = 'testimony';
+      $nodeTmp->status = 1;
+      $nodeTmp->name = 'cdt_import';
+      $nodeTmp->uid = 16;
+
+      $testimony_items = $testimony_body->getElementsByTagname('td');
+
+      foreach ($testimony_items as $testimony_item) {
+        if (empty($nodeTmp->created)) {
+          $nodeTmp->created = strtotime($testimony_item->nodeValue);
+        }
+        else {
+          $nodeTmp->body = ereg_replace("\n|\r", "", trim($testimony_item->nodeValue));
+          $author_issue_map = cdt_import_get_issue_mapping('users');
+          foreach ($author_issue_map as $author => $author_issue) {
+            if (preg_match("/$author/si", $nodeTmp->body)) {
+              $nodeTmp->field_author[0] = array('nid' => $author_issue['author_nid']);
+              $nodeTmp->field_parent[0] = array('nid' => $author_issue['issue_nid']);
+              break;
+            }
+          }
+          preg_match('/(^.*)before/si', $nodeTmp->body, $title);
+          if (empty($title)) {
+            preg_match('/(^.*),/si', $nodeTmp->body, $title);
+          }
+
+          $nodeTmp->title = trim($title[1]);
+
+          if (empty($title)) {
+            $nodeTmp->title = $nodeTmp->body;
+          }
+          $testimony_links = $testimony_item->getElementsByTagname('a');
+          foreach ($testimony_links as $testimony_link) {
+            $link = array(
+              'url' => $testimony_link->getAttributeNode('href')->nodeValue,
+              'text' => $testimony_link->nodeValue
+            );
+            cdt_import_flat_page($link, &$nodeTmp);
+          }
+        }
+      }
+      $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+      module_load_include('inc', 'node', 'node.pages');
+      node_submit(&$nodeTmp);
+      node_save(&$nodeTmp);
+
+      // Store some result for post-processing in the finished callback.
+      $context['results'][] = $nodeTmp->title;
+
+      // Update our progress information.
+      $context['sandbox']['current_node'] = $context['sandbox']['progress'];
+      $context['sandbox']['progress']++;
+      $context['message'] = t('Now processing %iid | %node', array('%iid' => $context['sandbox']['progress'], '%node' => $nodeTmp->title));
+
+      // Inform the batch engine that we are not finished,
+      // and provide an estimation of the completion level we reached.
+      if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+        $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+      }
+
+      $map = array('nid' => $nodeTmp->nid, 'iid' => $context['sandbox']['progress'], 'type' => 'Testimony');
+      drupal_write_record('cdt_import_map', $map);
+    }
+  }
+}
+
+function cdt_import_statements(&$context) {
+  db_set_active('oldcdt');
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(HeadlineID) FROM {Headlines} LIMIT 20'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {Headlines} WHERE HeadlineID > %d', $context['sandbox']['current_node'], 0, $limit);
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  $issue_map = cdt_import_get_issue_mapping('terms');
+  while ($content = db_fetch_object($results)) {
+    $nodeTmp = new stdClass();
+    foreach ($issue_map as $issue_nid => $issues) {
+      $issue_string = implode('|', $issues);
+      if (preg_match("/$issue_string/si", $content->HeadlineBody)) {
+        $nodeTmp->field_parent[0] = array('nid' => $issue_nid);
+        break;
+      }
+    }
+    $nodeTmp->title = $content->HeadlineTitle;
+    $nodeTmp->body = $content->HeadlineBody;
+    $nodeTmp->teaser = node_teaser($content->HeadlineBody);
+    $nodeTmp->created = strtotime($content->PostDate);
+    $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+    $nodeTmp->field_pr_statement_type[0]['value'] = 'statement';
+    $nodeTmp->type = 'pr_statement';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $content->HeadlineID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $content->HeadlineID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $content->HeadlineID, 'type' => 'Headlines');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_events(&$context) {
+  db_set_active('oldcdt');
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(EventID) FROM {Events} LIMIT 20'));
+  }
+
+  $limit = 1;
+
+  $results = db_query_range('SELECT * FROM {Events} WHERE EventID > %d', $context['sandbox']['current_node'], 0, $limit);
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+
+  $author_issue_map = cdt_import_get_issue_mapping('users');
+  while ($content = db_fetch_object($results)) {
+    foreach ($author_issue_map as $author => $author_issue) {
+      if (preg_match("/$author/si", $content->EventDescription)) {
+        $author_issue_ref = $author_issue;
+        break;
+      }
+    }
+    $nodeTmp = new stdClass();
+    $nodeTmp->title = strip_tags($content->EventDescription);
+    $nodeTmp->body = $content->EventDescription;
+    $nodeTmp->teaser = node_teaser($content->EventDescription);
+    $nodeTmp->field_parent[0] = array('nid' => $author_issue_ref['issue_nid']);
+    $nodeTmp->field_event_who[0] = array('nid' => $author_issue_ref['author_nid']);
+    $nodeTmp->created = time();
+    $nodeTmp->field_event_date[0] = array(
+      //'value' => array('date' => date('m/d/Y', $start_time), 'time' => date('H:i', $start_time)),
+      //'value2' => array('date' => date('m/d/Y', $end_time), 'time' => date('H:i', $end_time)),
+      //2009-10-07T16:34:00
+      'value' => str_replace(' ', 'T', $content->StartDate),
+      'value2' => str_replace(' ', 'T', $content->EndDate)
+    );
+
+    $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+    $nodeTmp->type = 'event';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $content->EventID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $content->EventID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $content->EventID, 'type' => 'Events');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_policy_issues(&$context) {
+  db_set_active('oldcdt');
+
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_node'] = 0;
+    $context['sandbox']['max'] = db_result(db_query('SELECT COUNT(PolicyPostID) FROM {PolicyPosts}'));
+  }
+
+  $limit = 1;
+  $results = db_query_range('SELECT * FROM {PolicyPosts} WHERE PolicyPostID > %d', $context['sandbox']['current_node'], 0, $limit);
+
+  //  $results = db_query('SELECT * FROM {PolicyPosts} WHERE PolicyPostID = 202');
+  //Switch back to the default connection when finished.
+  db_set_active('default');
+  $issue_map = cdt_import_get_issue_mapping('terms');
+  while ($content = db_fetch_object($results)) {
+    foreach ($issue_map as $issue_nid => $issues) {
+      $issue_string = implode('|', $issues);
+      if (preg_match("/$issue_string/si", $content->PolicyPostText)) {
+        $issue_ref = array('nid' => $issue_nid);
+        break;
+      }
+    }
+
+    $nodeTmp = new stdClass();
+    $nodeTmp->title = cdt_import_strtotitle($content->PolicyPostTitle);
+    if (empty($content->PolicyPostText)) {
+      cdt_import_flat_page(array('url' => $content->URL), &$nodeTmp);
+    }
+    else {
+      $nodeTmp->body = $content->PolicyPostText;
+    }
+    $nodeTmp->teaser = node_teaser($content->PolicyPostDescription);
+    $nodeTmp->field_parent[0] = $issue_ref; 
+    $nodeTmp->pages[0] = $nodeTmp->body;
+    $nodeTmp->created = strtotime($content->PostDate);
+    $nodeTmp->field_date[0]['value'] = date("Y-m-dTg:i:s", $nodeTmp->created);
+    $nodeTmp->type = 'policy';
+    $nodeTmp->status = 1;
+    $nodeTmp->name = 'cdt_import';
+    $nodeTmp->uid = 16;
+
+    $created = $nodeTmp->created;
+    module_load_include('inc', 'node', 'node.pages');
+    node_submit(&$nodeTmp);
+    node_save(&$nodeTmp);
+    // Store some result for post-processing in the finished callback.
+    $context['results'][] = $nodeTmp->title;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_node'] = $content->PolicyPostID;
+    $context['message'] = t('Now processing %iid | %node', array('%iid' => $content->PolicyPostID, '%node' => $nodeTmp->title));
+
+    // Inform the batch engine that we are not finished,
+    // and provide an estimation of the completion level we reached.
+    if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+      $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+    }
+    $map = array('nid' => $nodeTmp->nid, 'iid' => $content->PolicyPostID, 'type' => 'PolicyPosts');
+    drupal_write_record('cdt_import_map', $map);
+  }
+}
+
+function cdt_import_get_issue_mapping($type) {
+  switch ($type) {
+    case 'terms':
+      // issue_nid => keywords
+      return array(
+        //(Security & Surveillance)
+        '75' => array('PATRIOT Act', 'Patriot Act', 'Cybersecurity', 'PASS ID', 'Intelligence', 'Wiretap', 'FISA', 'NSA', 'REAL ID', 'CALEA'),
+        //(Internet Openness & Standards)
+        '76' => array('WC3', 'ICANN'),
+        //(Free Expression)
+        '77' => array('Section 230', 'Child Safety', 'Internet Neutrality', 'Free Speech', 'Free Expression', 'Warhol'),
+        //(Consumer Privacy)
+        '78' => array('Location', 'Privacy Act', 'Spyware', 'ASC', 'Consumer Privacy'),
+        //(Health Privacy)
+        '79' => array('Health Privacy', 'HIPAA', 'Health Privacy Project', 'ARRA', 'American Recovery and Reinvestment Act', 'Health'),
+        //(Digital Copyright)
+        '80' => array('Copyright', 'DRM', 'Music', 'DVR', 'Google Books', 'Broadcast Flag'),
+        //(Open Government)
+        '81' => array('CRS', 'OpenCRS', 'Data.gov', 'data.gov', 'open government'),
+        //(International)
+        '520' => array('ICANN', 'GNI', 'Global Network Initiative', 'Human Rights'),
+      );
+    case 'users':
+      // author => array('author_nid' => #, 'issue_id' => #)
+      return array(
+        //(Security & Surveillance)
+        'Greg Nojeim' => array('author_nid' => 480, 'issue_nid' => 75),
+        //(Internet Openness & Standards)
+        'Alissa Cooper' => array('author_nid' => 482, 'issue_nid' => 76),
+/*
+        //(Free Expression)
+        'John Morris' => array('author_nid' => , 'issue_nid' => 77),
+*/
+        //(Consumer Privacy)
+        'Ari Schwartz' => array('author_nid' => 466, 'issue_nid' => 78),
+        //(Health Privacy)
+        'Deven McGraw' => array('author_nid' => 449, 'issue_nid' => 79),
+        //(Digital Copyright)
+        'David Sohn' => array('author_nid' => 438, 'issue_nid' => 80),
+        //(Open Government)
+        'Ari Schwartz' => array('author_nid' => 466, 'issue_nid' => 81),
+        //(International)
+        'Leslie Harris' => array('author_nid' => 469, 'issue_nid' => 520),
+      );
+  }
+}
+
+function cdt_import_flat_page($link, &$nodeTmp, $force_external = FALSE) {
+  $parsed_url = parse_url($link['url']);
+  $file_type = array_pop(explode('.', $parsed_url['path']));
+  if ($parsed_url['host'] == 'cdt.org' || empty($parsed_url['host']) || $parsed_url['host'] == 'www.cdt.org') {
+    if ($file_type == 'pdf' || $file_type == 'pd') {
+      $type = 'pdf';
+      if ($force_external == TRUE) {
+        $type = 'external_pdf';
+      }
+    }
+    else {
+      $type = 'local_html';
+      if ($force_external == TRUE) {
+        $type = 'external_link';
+      }
+    }
+
+    if ($parsed_url['path'][0] != '/') {
+      if (!strpos($parsed_url, 'testimony') && $nodeTmp->type == 'testimony') {
+        $parsed_url['path'] = '/testimony/' . $parsed_url['path'];
+      }
+      else {
+        $parsed_url['path'] = '/' . $parsed_url['path'];
+      }
+    }
+    $link['url'] = 'http://cdt.org' . $parsed_url['path'];
+  }
+  else {
+    if ($file_type == 'pdf') {
+      $type = 'external_pdf';
+    }
+    else {
+      $type = 'external_link';
+    }
+  }
+
+  switch ($type) {
+    case 'external_pdf':
+    case 'external_link':
+      $nodeTmp->field_supporting_docs[] = array('url' => $link['url'], 'title' => $link['text']);
+      break;
+    case 'pdf':
+      cdt_import_attach_file($link['url'], &$nodeTmp);
+      break;
+    case 'local_html':
+      $ch = curl_init();
+      //curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+      curl_setopt($ch, CURLOPT_URL, $link['url']);
+      curl_setopt($ch, CURLOPT_FAILONERROR, true);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+      curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
+      curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+      $html = curl_exec($ch);
+      curl_close($ch);
+      if ($html) {
+        cdt_import_get_links($html, &$nodeTmp);
+        preg_match('/<h1>[^<]*<\/h1>(.*?)<hr noshade="noshade"/si', $html, $body);
+        if (!empty($body)) {
+          preg_match('/<h1>[^<]*<\/h1>/', $body[0], $title);
+          $title_text = strip_tags($title[0]);
+          $body = trim(str_replace($title[0], '', $body[0]));
+          $nodeTmp->title = $title_text;
+          $nodeTmp->body = str_replace('<hr noshade="noshade"', '', $body);
+        }
+        else {
+          preg_match('/<font size=\+2>[^<].*?<\/font>(.*?)<hr noshade="noshade"/si', $html, $body);
+          if (!empty($body)) {
+            $body = preg_replace('/<font size=\+2>[^<].*?<\/font>/si', '', $body[0]);
+            preg_match('/<font size=\+1>[^<].*?<\/font>/si', $body, $date);
+            $body = str_replace($date[0], '', $body);
+            $nodeTmp->created = strtotime(strip_tags($date[0]));
+            $nodeTmp->body = str_replace('<hr noshade="noshade"', '', $body);
+          }
+          else {
+            preg_match('/<body([^>]*)>(.*)<\/body>/si', $html, $body);
+            $body = preg_replace('/<\/?body[^>]*>/si', '', $body[0]);
+            $nodeTmp->body = $body;
+          }
+        }
+      }
+      else {
+        return FALSE;
+      }
+      break;
+  }
+}
+
+function cdt_import_get_links($html, &$nodeTmp, $type = 'pdf') {
+  $dom = new domDocument();
+  @$dom->loadHTML($html);
+  /*** remove silly white space ***/
+  $dom->preserveWhiteSpace = false;
+
+  /*** get the links from the HTML ***/
+  $links = $dom->getElementsByTagName('a');
+  /*** loop over the links ***/
+  foreach ($links as $tag) {
+    if ($type == 'pdf') {
+      $url = $tag->getAttribute('href');
+      $tmp_url = explode('.', $url);
+      if (array_pop($tmp_url) == 'pdf') {
+        cdt_import_flat_page(array('url' => $url, 'text' => $tag->childNodes->item(0)->nodeValue), &$nodeTmp);
+      }
+    }
+    else {
+      cdt_import_flat_page(array('url' => $tag->getAttribute('href'), 'text' => $tag->childNodes->item(0)->nodeValue), &$nodeTmp);
+    }
+  }
+}
+
+function cdt_import_attach_file($file_location, &$node) {
+  // make the cURL request to $target_url
+  $ch = curl_init();
+  //curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+  curl_setopt($ch, CURLOPT_URL, $file_location);
+  curl_setopt($ch, CURLOPT_FAILONERROR, true);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+  curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+  try {
+    $file = curl_exec($ch);
+    if (!$file) {
+      throw new Exception(curl_errno($ch) . ': ' . curl_error($ch));
+    }
+  } 
+  catch (Exception $e) {
+    watchdog('cdt_import', 'Caught exception: '.  $e->getMessage());
+  }
+  curl_close($ch);
+
+  $file_name = basename($file_location);
+  $file_name_split = explode('.', $file_name);
+  $file_name_split[1] = 'pdf';
+  $file_name = implode('.', $file_name_split);
+  $file = file_save_data($file, file_directory_path() . '/' . $file_name, FILE_EXISTS_RENAME);
+
+  // Load up the CCK field
+   $field = content_fields('field_pdf');
+   // Load up the appropriate validators
+   $validators = array_merge(filefield_widget_upload_validators($field));
+   // Where do we store the files?
+   $files_path = filefield_widget_file_path($field);
+   // Create the file object, replace existing file with new file as source and dest are the same
+   $file = field_file_save_file($file, $validators, $files_path, FILE_EXISTS_REPLACE);
+   // Apply the file to the field, this sets the first file only, could be looped
+   $node->field_pdf[] = $file;
+}
+
+function strip_only($str, $tags, $strip_content = FALSE) {
+  preg_match_all("/<([^>]+)>/i", $tags, $allTags, PREG_PATTERN_ORDER);
+  foreach ($allTags[1] as $tag) {
+    $replace = "%(<$tag.*?>)(.*?)(<\/$tag.*?>)%is";
+    $replace2 = "%(<$tag.*?>)%is";
+    echo $replace;
+    if ($stripContent) {
+      $str = preg_replace($replace,'',$str);
+      $str = preg_replace($replace2,'',$str);
+    }
+    $str = preg_replace($replace,'${2}',$str);
+    $str = preg_replace($replace2,'${2}',$str);
+  }
+  return $str;
+}
+
+function cdt_import_strtotitle($title) { 
+  if (ctype_upper($title)) {
+    $smallwordsarray = array( 'of','a','the','and','an','or','nor','but','is','if','then','else','when', 'at','from','by','on','off','for','in','out','over','to','into','with' ); 
+    // Split the string into separate words 
+    $words = explode(' ', $title); foreach ($words as $key => $word) { 
+    // If this word is the first, or it's not one of our small words, capitalise it 
+    // with ucwords().
+    if ($key == 0 or !in_array($word, $smallwordsarray)) $words[$key] = ucwords(strtolower($word)); } 
+
+    // Join the words back into a string 
+    $newtitle = implode(' ', $words);
+    return $newtitle;
+  }
+  else {
+    return $title;
+  }
+}
+
+/*
+ * Migrate grandchildren from old field_grandchildren to new field_grandchild field.
+ */
+function cdt_import_fix_grandchildren() {
+  $grandchildren = array();
+  $results = db_query("SELECT g.nid, g.field_grandchildren_value FROM {content_field_grandchildren} g INNER JOIN {node} n ON n.vid = g.vid WHERE g.field_grandchildren_value IS NOT NULL");
+  while ($obj = db_fetch_object($results)) {
+    $split = split('_', $obj->field_grandchildren_value);
+    $name = db_result(db_query("SELECT field_child_grandchildren_value FROM {content_field_child_grandchildren} WHERE nid = %d AND delta = %d", $split[0], $split[1]));
+    $gcnid = db_result(db_query("SELECT g.nid FROM {content_type_grandchild} g INNER JOIN {node} n ON g.vid = n.vid WHERE g.field_grandchild_child_nid = %d AND n.title = '%s'", $split[0], $name));
+    if ($gcnid) {
+      $grandchildren[$obj->nid][] = $gcnid;
+    }
+  }
+  
+  foreach ($grandchildren as $nid => $gcs) {
+    $i = 0;
+    $n = node_load($nid);
+    foreach ($gcs as $gc) {
+      $n->field_grandchild[$i]['nid'] = $gc;
+      $i++;
+    }
+    node_save($n);
+    print 'Migrated node ' . $n->nid . '.<br/>';
+  }
+}

@@ -1,0 +1,261 @@
+<?php
+
+/**
+ *  @file
+ *  CDT Custom
+ *
+ *  This module contains miscellaneous "glue" code for cdt.org.
+ *    - Modify the exposed filter language in tabbed blocks.
+ *    - Validate parent/child/granchildren constraints.
+ *    - Re-enable cookies for users logging in.
+ *    - Keep back-end field_date field updated for Event and Job content types.
+ *    - Insert sign-up form HTML into contact page form.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function cdt_custom_menu() {
+  $items = array();
+  $items['feeds'] = array(
+    'title' => 'Main RSS Feeds',
+    'description' => 'A page that displays all RSS feeds for the site.',
+    'page callback' => 'cdt_custom_feeds_display',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/*
+ *  Implementation of hook_nodeapi().
+ */
+function cdt_custom_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    case 'presave':
+      if ($node->type == 'job') {
+        $node->field_date[0]['value'] = $node->field_job_date[0]['value'];
+      }
+      elseif ($node->type == 'event') {
+        $node->field_date[0]['value'] = $node->field_event_date[0]['value'];      
+      }
+      break;
+  }
+}
+
+/*
+ *  Implementation of hook_form_alter().
+ */
+function cdt_custom_form_alter(&$form, $form_state, $form_id) {
+  // Custom validation on comment form to remove cookie.
+  if ($form_id == 'comment_form') {
+    $form['#validate'][] = 'cdt_custom_comment_form_validate';
+  }
+
+  // Modify the exposed filter language in tabbed blocks.
+  if ($form_id == 'views_exposed_form') {
+    if (drupal_is_front_page()) {
+      $form['field_parent_nid']['#options']['All'] = '- All Issues -';
+    }
+    elseif (arg(0) == 'node' && is_numeric(arg(1))) {
+      $n = node_load(arg(1));
+      if ($n->type == 'parent') {
+        // Only show this parent's children in the filter.
+        $options = array('All' => '- All Issues -');
+        $results = db_query(db_rewrite_sql("SELECT n.nid FROM {content_type_child} c INNER JOIN {node} n ON c.vid = n.vid INNER JOIN {content_field_weight} w ON n.vid = w.vid WHERE c.field_child_parent_nid = %d and n.status = 1 ORDER BY w.field_weight_value ASC"), $n->nid);
+        while ($obj = db_fetch_object($results)) {
+          if (array_key_exists($obj->nid, $form['field_child_nid']['#options'])) {
+            $options[$obj->nid] = $form['field_child_nid']['#options'][$obj->nid];
+          }
+        }
+        $form['field_child_nid']['#options'] = $options;        
+      }
+      elseif ($n->type == 'child') {
+        // Only show this parent's children in the filter.
+        $options = array('All' => '- All Tags -');
+        $results = db_query(db_rewrite_sql("SELECT n.nid FROM {content_type_grandchild} g INNER JOIN {node} n ON g.vid = n.vid WHERE g.field_grandchild_child_nid = %d and n.status = 1 ORDER BY n.title ASC"), $n->nid);
+        while ($obj = db_fetch_object($results)) {
+          if (array_key_exists($obj->nid, $form['field_grandchild_nid']['#options'])) {
+            $options[$obj->nid] = $form['field_grandchild_nid']['#options'][$obj->nid];
+          }
+        }
+        $form['field_grandchild_nid']['#options'] = $options;          
+      }
+    }
+  }
+  elseif (isset($form['type']['#value']) && $form['type']['#value'] .'_node_form' == $form_id) {
+    // Validate parent/child/granchildren constraints.
+    if ($form['field_parent']) {
+      $form['#validate'][] = 'cdt_custom_issue_constraints_validate';
+    }
+    
+    // Keep back-end field_date field updated for Event and Job content types.
+    if ($form['type']['#value'] == 'event' || $form['type']['#value'] == 'job') {
+      unset($form['field_date']);
+    }
+  }
+  elseif ($form_id == 'user_login_block' || $form_id == 'user_login') {
+    if ($form_state['post']) {
+      // Someone's attempting to log in.  Let's allow session cookies.
+      ini_set('session.use_cookies', 1);
+    }
+  }
+  elseif ($form_id == 'contact_mail_page') {
+    // Insert custom HTML signup form into contact page.
+    $form['#prefix'] = _cdt_custom_signup_form();
+  }
+}
+
+/*
+ * Implementation of hook_validate().
+ *
+ * Validate parent/child/granchildren constraints.
+ */
+function cdt_custom_issue_constraints_validate($form, &$form_state) {
+  $error = FALSE;
+  
+  // Parent must be selected for certain types.
+  if (in_array($form['type']['#value'], array('brief', 'paper', 'policy', 'letter', 'comments', 'report', 'testimony'))) {
+    if (!$form_state['values']['field_parent'][0]['nid']) {
+      form_set_error('field_parent', t('You must select a parent issue.'));
+      $error = TRUE;
+    }
+    if (!$form_state['values']['field_child'][0]['nid']) {
+      form_set_error('field_child', t('You must select at least one child issue.'));
+      $error = TRUE;
+    }
+  } 
+  
+  // Make sure child is selected if a parent is, and vice versa.
+  if ($form_state['values']['field_parent'][0]['nid'] && !$form_state['values']['field_child'][0]['nid'] && !in_array($form['type']['#value'], array('personnel', 'event', 'press_hit'))) {
+    form_set_error('field_child', t('You must select at least one child issue if a parent is selected.'));
+    $error = TRUE;
+  }
+  elseif (!$form_state['values']['field_parent'][0]['nid'] && $form_state['values']['field_child'][0]['nid']) {
+    form_set_error('field_child', t('You must select a parent issue if a child is selected.'));
+    $error = TRUE;
+  }
+  
+  // Make sure a parent and child are selected if a grandchild is.
+  if ($form_state['values']['field_grandchild'][0]['nid'] && (!$form_state['values']['field_parent'][0]['nid'] || !$form_state['values']['field_child'][0]['nid'])) {
+    form_set_error('field_grandchild', t('You must select parent and child issues if grandchildren are selected.'));
+    $error = TRUE;
+  }
+
+  // Check remaining constraints if we have a parent and there are no errors so far.
+  if (!$error && $form_state['values']['field_parent'][0]['nid'] && !in_array($form['type']['#value'], array('personnel', 'press_hit'))) {
+    $parent = node_load($form_state['values']['field_parent'][0]['nid']);
+    $children = $cnids = array();
+    foreach ($form_state['values']['field_child'] as $child) {
+      if ($child['nid']) {
+        $children[] = node_load($child['nid']);
+        $cnids[] = $child['nid'];
+      }
+    }
+    
+/*    // Check if children all have proper parents.
+    $first = TRUE;
+    foreach ($children as $child) {
+      if ($parent->nid != $child->field_child_parent[0]['nid']) {
+        form_set_error('field_child' . ($first ? '' : '[' . $child->nid . ']'), t('%child is not a child of %parent.', array('%child' => $child->title, '%parent' => $parent->title)));
+        $first = FALSE;
+      }
+    }
+*/
+    // Check if grandchildren all have proper children.
+    $first = TRUE;
+    if (isset($form_state['values']['field_grandchild'])) {
+      foreach ($form_state['values']['field_grandchild'] as $key => $grandchild) {
+        if ($grandchild['nid']) {
+          $gcnode = node_load($grandchild['nid']);
+          if (!in_array($gcnode->field_grandchild_child[0]['nid'], $cnids)) {
+            form_set_error('field_grandchild' . ($first ? '' : '[' . $key . ']'), t('%grandchild is not a grandchild of any of the chosen children.', array('%grandchild' => $gcnode->title)));
+            $first = FALSE;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_validate().
+ *
+ * Remove the comment_info_* cookies comment_form_validate creates.
+ */
+function cdt_custom_comment_form_validate($form, &$form_state) {
+  foreach (array('name', 'homepage', 'mail') as $field) {
+    setcookie('comment_info_' . $field, '', time() - 31536000, '/');
+  }
+}
+
+function cdt_custom_feeds_display() {
+  $type_feeds = array();
+  $type_feeds['blog']  = t('Blog - ') . theme('feed_icon', url('feeds/content_type/blog/rss.xml'),  t('Blog feed'));
+  $type_feeds['policy'] = t('Policy Posts - ') . theme('feed_icon', url('feeds/content_type/policy/rss.xml'),  t('Policy feed'));
+  $type_feeds['event'] = t('Event - ') . theme('feed_icon', url('feeds/content_type/event/rss.xml'),  t('Event feed'));
+  $type_feeds['pr_statement'] = t('PR / Statement - ') . theme('feed_icon', url('feeds/content_type/pr_statement/rss.xml'),  t('Press Releases'));
+  /*
+  $results = db_query('SELECT type, name FROM {node_type} ORDER BY type');
+  while ($type = db_fetch_object($results)) {
+    if ($type->type != 'parent' AND $type->type != 'child') {
+      $type_feeds[$type->type] = check_plain($type->name) . ' - ' . theme('feed_icon', url('feeds/content_type/' . $type->type . '/rss.xml'),  t('@type feed', array('@type' => $type->name)));
+    }
+  }
+  */
+
+  $issue_feeds = array();
+  $results = db_query('SELECT node.nid AS nid, node.title AS node_title FROM {node} node WHERE (node.type = "parent") AND (node.status <> 0) ORDER BY node_title ASC');
+  while ($parent_issue = db_fetch_object($results)) {
+    $feed_link = $parent_issue->node_title . ' - ' . theme('feed_icon', url('feeds/parent_issue/' . $parent_issue->nid . '/rss.xml'), t('@parent feed', array('@parent' => $parent_issue->node_title)));
+    $issue_feeds[$parent_issue->nid] = array($feed_link);
+  }
+
+
+
+ return theme('item_list', $type_feeds) . theme('item_list', $issue_feeds, t('Issues'));
+}
+
+/**
+ *  Implements hook_views_query_alter().
+ */
+function cdt_custom_views_query_alter(&$view, &$query) {
+  $expert_views_displays = array('feed_1', 'block_3', 'page_1', 'block_2');
+  if ($view->name == 'experts' && (in_array($view->current_display, $expert_views_displays))) {
+    if (in_array('node_data_field_blog_author.field_blog_author_nid = %d', $query->where[0]['clauses'])) {
+      foreach (array_keys($view->argument) as $key => $value) {
+        if ($value == 'field_author_nid' || $value == 'field_blog_author_nid') {
+          foreach ($query->where[0]['args'] as $key2 => $value2) {
+            if ($value2 == $view->args[$key]) {
+              if ($value2 > 0) {
+                $arg = $value2;
+              }
+              unset($query->where[0]['args'][$key2]);
+            }
+          }
+        }
+      }
+
+      foreach ($query->where[0]['clauses'] as $key => $value) {
+        if ($value == 'node_data_field_author.field_author_nid = %d' || $value == 'node_data_field_blog_author.field_blog_author_nid = %d') {
+          $clauses[] = $query->where[0]['clauses'][$key];
+          unset($query->where[0]['clauses'][$key]);
+        }
+      }
+      $query->where[] = array(
+        'clauses' => $clauses,
+        'args' => array($arg, $arg),
+        'type' => 'OR',
+      );
+
+    }
+  }
+}
+
+/**
+ * Mail signup form HTML.
+ */
+function _cdt_custom_signup_form() {
+  return <<<EOT
+EOT;
+}

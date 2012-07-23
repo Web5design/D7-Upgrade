@@ -1,0 +1,4 @@
+name = CDT Blocks
+description = Implements custom CDT blocks.
+package = CDT
+core = 7.x

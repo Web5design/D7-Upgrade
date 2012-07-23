@@ -1,0 +1,48 @@
+<?php
+// $Id:$
+
+/**
+ * @file
+ * Install and uninstall functions as well as schema definition for the cdt Import module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function cdt_import_schema() {
+  $schema['cdt_import_map'] = array(
+    'fields' => array(
+      'iid' => array(
+        'description' => 'The import id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'nid' => array(
+        'description' => 'The node id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function cdt_import_install() {
+  drupal_install_schema('cdt_import');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function cdt_import_uninstall() {
+  //drupal_uninstall_schema('cdt_import');
+}

@@ -1,0 +1,6 @@
+;$Id: swfembed.info,v 1.1 2009/03/18 20:27:12 mbutcher Exp $
+
+name = SWF Embed
+description = Add SWF (ShockWave Flash) files to your site.
+core = 6.x
+php = 5.x

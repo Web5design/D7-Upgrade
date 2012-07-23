@@ -1,0 +1,235 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en-US">
+<head>
+  <title>Privacy Rulesets</title>
+  <meta http-equiv="Content-type" content="text/html;charset=US-ASCII">
+  <style type="text/css">
+   .example { margin-left:1em; padding-left:1em; border-left:double; color:#222; background:#fcfcfc }
+   .note { margin-left:2em; font-weight:bold; font-style:italic; color:green }
+   .note pre { font-weight:normal; font-style:normal }
+   pre > code, li > code { color:inherit; background:transparent }
+   .XXX { padding:.5em; border:solid #f00 }
+   em.ct {
+    text-transform:lowercase;
+    font-variant:small-caps;
+    font-style:normal
+   }
+   dfn { font-weight:bold; font-style:normal }
+   code { color: maroon; }
+   code:link, code:visited { color:inherit }
+  </style>
+  <link rel="stylesheet" type="text/css" href="http://www.w3.org/StyleSheets/TR/W3C-ED">
+</head>
+  <body>
+	
+	<div class="head">
+
+	  <p><a href="http://www.w3.org/"><img alt="W3C" height="48" width="72"
+	    src="http://www.w3.org/Icons/w3c_home"></a></p>
+
+	  <h1>Privacy Rulesets</h1>
+	  <h2>Editor's Draft 12 April 2010</h2>
+	  <dl>
+	    <dt>Editors:</dt>
+	      <dd>Alissa Cooper (<a href="http://www.cdt.org">Center for Democracy & Technology</a>)</dd>
+	      <dd>John Morris (<a href="http://www.cdt.org/">Center for Democracy & Technology</a>)</dd>
+		<dd>Erica Newland (<a href="http://www.cdt.org/">Center for Democracy & Technology</a>)</dd>
+	  </dl>
+	  <p class="copyright"><a
+	  href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a>
+	  &copy; 2010 <a href="http://www.w3.org/"><acronym title="World Wide Web
+	  Consortium">W3C</acronym></a><sup>&reg;</sup> (<a
+	  href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of
+	  Technology">MIT</acronym></a>, <a href="http://www.ercim.eu/"><acronym
+	  title="European Research Consortium for Informatics and
+	  Mathematics">ERCIM</acronym></a>, <a href="http://www.keio.ac.jp/">Keio</a>),
+	  All Rights Reserved. W3C <a
+	  href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
+	  <a
+	  href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a>
+
+	  and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document
+	  use</a> rules apply.</p>
+	</div>
+
+	<hr>
+
+	<h2 class="no-num no-toc" id="abstract">Abstract</h2>
+	<p>This document proposes a scheme for defining privacy rulesets: bundles of user privacy preferences that can be conveyed together with user data in the context of a web site or application interaction.</p>
+
+	<h2 class="no-num no-toc" id="sotd">Status of This Document</h2>
+
+	<p>This document is merely a W3C-internal document. It has no official standing of any kind and does not represent consensus of the W3C Membership. It is a strawman that has been produced without significant consultation with the wider privacy community for the purpose of starting a discussion about what makes sense in the space of potential possibilities for privacy rulesets.</p>
+
+	<h2 class="no-num no-toc" id="toc">Table of Contents</h2>
+	<!--begin-toc-->
+	<ul class="toc">
+	  <li><a href="#introduction"><span class=secno>1</span> Introduction</a></li>
+		  <li><a href="#scope"><span class=secno>2</span> Scope</a></li>
+	  <li><a href="#elements"><span class=secno>3</span> Privacy Elements</a></li>
+		<ul>
+			<li><a href="#sharing"><span class=secno>3.1</span> Sharing</a></li>
+			<li><a href="#sharing"><span class=secno>3.2</span> Secondary Use</a></li>
+			<li><a href="#sharing"><span class=secno>3.3</span> Retention</a></li>
+			</ul>
+	  <li><a href="#rulesets"><span class=secno>4</span> Privacy Rulesets</a></li>
+	  <li><a href="#glossary"><span class=secno>5</span> Glossary</a></li>
+	  <li class=no-num><a href="#references">References</a></li>
+	  <li class=no-num><a href="#acknowledgments">Acknowledgments</a></li>
+	</ul>
+	<!--end-toc-->
+
+</section>
+    <section id='introduction'>
+<h2><span class="secno">1</span> Introduction</h2>
+<p>There have been many previous efforts at encapsulating privacy policies in reduced forms [1-9]. The lessons learned from all of these support the notion that the DAP WG discussed in Prague that for user-defined expressions of privacy preferences, two constraints are key: they need to be simple, and they need to make sense to both users and developers. The experience of the Creative Commons licenses [10] reinforces this as well -- CC started with four license conditions and six licenses, and it seems that in practice only two of the license conditions tend to vary from license to license [11].</p>
+
+<p>Using the term "license" to describe user privacy preferences doesn't seem quite right, since "license" implies some rights being transferred between the user and the entity collecting his or her data. Many other terms have been suggested: privacy rulesets, bundles, baskets, preferences, policies, expectations. None of them seems perfect, but this proposal will call them privacy rulesets. Other key terms are defined in the glossary below.</p>
+
+<p>A scheme is proposed below for defining privacy rulesets that cover three elements of privacy that seem to matter most to users, are easiest to encapsulate in brief form, and have been addressed by similar previous efforts: sharing, secondary use, and retention of user data. Each element has three possible attributes. When one or more of these attributes are combined, they produce a privacy ruleset. The scheme assumes that a ruleset would be somehow conveyed together with user data in the context of an interaction with a web site or application owned by a company or other organization (known as the "data collector"), such that the ruleset is meant to convey to the organization what the user's preferences are about the data being conveyed. A given ruleset is meant to govern only the data that gets conveyed with it.</p>
+
+<section id='scope'>
+	<h2><span class="secno">2</span> Scope</h2>
+
+<p>For simplicity, the rulesets only apply to data used in individualized form. What data collectors do with aggregate data -- data about multiple individuals that cannot reasonably be used to directly identify or infer the identity of any single individual -- is out of scope.</p>
+
+</section>
+
+<section id='elements'>
+<h2><span class="secno">3</span> Privacy Elements</h2>
+
+<p>The elements and their attributes are defined as follows:</p>
+
+<section id='sharing'>
+<h3><span class="secno">3.1</span> Sharing</h3>
+	<p><code><b>internal</b></code>: The data can be shared internally within the data collector's organization and with other organizations that help the data collector provide the service requested in the current interaction.</p>
+	<ul><li>Example: A user uses an application that invokes the media capture API to provide a voice search service. The voice capture gets shared only with the organization that provides the app and its partner company that provides the search results, but not with any other company.</li></ul>
+	
+	<p><code><b>affiliates</b></code>: The data can be shared with other organizations that the data collector controls or is controlled by.</p>
+	<ul><li>Example: A user provides a photo captured with the media capture API to Flickr and that photo gets shared with Yahoo (Yahoo owns Flickr).</li></ul>
+	
+<p><code><b>unrelated-companies</b></code>: The data can be shared outside of the data collector's organization with other organizations that it does not control and is not controlled by.</p>
+	<ul><li>Example: A user provides contact details obtained through the contacts API to an application provider and that application provider shares them with other unaffiliated companies, like direct marketers or credit reporting agencies.</ul></li>
+
+<p><code><b>public</b></code>: The data can be made public.</p>
+	<ul><li>Example: A user uses an application employing the calendar API to post an event on a public web site.</ul></li>
+	
+<p>It is important to note that none of the <code>sharing</code> attributes are mutually exclusive -- any of them may be combined to form more permissive grants of sharing abilities than any single one of them on its own.</p>
+</section>
+<section id='secondary-use'>
+<h3><span class="secno">3.2</span> Secondary Use</h3>
+	
+<p>It can sometimes be difficult to distinguish between "primary" uses of user data and "secondary" uses. What users believe to be primary uses and what applications providers believe to be primary uses are not always the same, because all of the functionality that contributes to being able to provide a particular application or service is not always evident to users. The attributes below are crafted with the user's conception of secondary use in mind, and therefore attempt to cover all uses of user data that users might want to express a preference about (without making the attributes overly granular).</p>
+
+<p><code><b>contextual</b></code>: The data may only be used for the purpose of completing the current interaction. Contextual uses may include securing, troubleshooting or improving the service being provided or providing advertising in the context of the current interaction.</p>
+	<ul><li>Example: A user sets reminders for upcoming events using an application that uses the calendar API. The application uses the events data to deliver the reminders and to serve a contextual ad when the user sets a reminder.</ul></li>
+
+<p><code><b>customization</b></code>: The data may be used to customize, personalize, or otherwise tailor the current interaction for the user.</p>
+	<ul><li>Example: A user records songs that he or she hears using an application that employs the media capture API. The application identifies and uses the recorded songs to suggest new music that the user may be interested in.</ul></li>
+
+<p><code><b>marketing-or-profiling</b></code>: The data may be used for marketing and/or profiling purposes. Marketing may occur over time and via any channel (web, email, telemarketing, etc.). Profiling involves the creation of a collection of information about an individual and applies to profiles created for any purpose other than customization (e.g., for research, to sell to other organizations, etc.).</p>
+	<ul><li>Example: A user sets reminders for upcoming events using an application that uses the calendar API. The application uses the events data to deliver the reminders and to serve ads based on all of the user's reminders.</ul></li>
+	
+<p>None of the <code>secondary-use</code> attributes are mutually exclusive.</p>
+
+</section>
+<section id='retention'>
+<h3><span class="secno">3.3</span> Retention</h3>
+
+<p>The fact that most web servers automatically record logs of user activity -- and that many of these logs are never deleted -- can complicate the task of having applications abide by user-defined retention policies. The retention attributes defined below assume that as a general matter, all data collectors may retain user data for a baseline period of 35 days for the purposes of maintenance, security, and troubleshooting. The attributes express user preferences that apply to retention practices that go beyond this baseline period.</p>
+
+<p><code><b>no</b></code>: The data may only be retained for the baseline period.</p></li>
+	<ul><li>Example: A user uses a webcam service that employs the media capture API. The video data is not retained after 35 days.</ul></li>
+
+<p><code><b>short</b></code>: The data may be retained beyond the baseline period, but only for a limited time.</p></li>
+	<ul><li>Example: A user uses an application that invokes the media capture API to provide a voice search service. The voice searches are retained for 90 days to optimize search results.</ul></li>
+
+<p><code><b>long</b></code>: The data may be retained beyond the baseline period for an unspecified or indefinite amount of time.</p></li>
+	<ul><li>Example: A user drafts SMS messages using an application that invokes the messaging API. Those draft SMS messages are retained indefinitely until the user deletes them.</ul></li> 
+
+<p>The <code>retention</code> attributes are mutually exclusive.</p>
+
+</section>
+</section>
+<section id='rulesets'>
+<h2><span class="secno">4</span> Privacy Rulesets</h2>
+
+<p>The attributes listed above could be combined in many different combinations. Not all of them are possible or sensical (i.e., allowing marketing-or-profiling but not retention), and like Creative Commons licenses, there are likely only a handful that users would want to employ regularly. A list of these potentially common rulesets is proposed below.</p>
+
+<p>(The formatting of these is arbitrary: they could just as easily be declared as two-letter codes like Creative Commons attributes, or like URI parameters, or in XML, or some other way).</p>
+
+<dl>
+	<dt><p><b>Least permissive: 
+		<br><code>sharing=internal</code>
+		<br><code>secondary-use=contextual</code>
+		<br><code>retention=no</code>
+	</b></dt>
+	<dd>The least permissive ruleset says that the user wants her data shared only internally by the data collector and organizations that help the data collector deliver the service, only used for contextual purposes (which includes contextual advertising), and not retained beyond the baseline period.</p></dd>
+	<dt><p><b>Internal customization/personalization: 
+		<br><code>sharing=internal</code>
+		<br><code>secondary-use=customization</code>
+		<br><code>retention=short</code>
+		</b></dt>
+	<dd>Some users may want to permit their data to be used internally by the data collector to do individualized analytics or provide some personalization based on recent activity, but not for marketing purposes. This ruleset, which allows data to be retained for a limited period and used for customization but not shared, corresponds to that set of preferences.</p></dd>
+	<dt><p><b>Profile-based advertising: 
+		<br><code>sharing=internal</code>
+		<br><code>secondary-use=marketing-or-profiling</code>
+		<br><code>retention=long</code></b></dt>
+	<dd>If users want to allow the data collector to use their data in profiles that are later used to target ads back to them, this ruleset would allow for that, with sharing still limited for internal use but with marketing, profiling, and retention allowed.</p></dd>
+	<dt><p><b>Public: 
+		<br><code>sharing=public</code>
+		<br><code>secondary-use=contextual</code>
+		<br><code>retention=long</code>
+		</b></dt>
+	<dd>This ruleset lets users express their permission to have their data shared publicly, but not used by the data collector for non-contextual purposes.</p></dd>
+	<dt><p><b>Most permissive: 
+		<br><code>sharing=internal</code>
+		<br><code>sharing=affiliates</code>
+		<br><code>sharing=unrelated-companies</code>
+		<br><code>secondary-use=contextual</code>
+		<br><code>secondary-use=customization</code>
+		<br><code>secondary-use=marketing-or-profiling</code>
+		<br><code>retention=long</code>
+		<br><code></b></dt>
+	<dd>The most permissive ruleset allows all three kinds of sharing, all three kinds of secondary use, and indefinite retention.</p></dd>
+</dl>
+
+</section>
+
+<section id='glossary'>
+<h2><span class="secno">5</span> Glossary</h2>
+<p>To be filled in.</p>
+
+<dl>
+<dt><b>affiliate</b></dt>
+<dd>An organization that controls, is controlled by, or is under common control with another organization.</dd>
+<dt><b>aggregate data</b></dt>
+<dt><b>data collector</b></dt>
+<dt><b>individualized data</b></dt>
+<dt><b>privacy ruleset</b></dt>
+<dt><b>primary use</b></dt>
+<dt><b>profile</b></dt>
+<dt><b>secondary use</b></dt>
+<dt><b>session</b></dt>
+<dt><b>unrelated company</b></dt>
+</dl>
+
+</section>
+
+<section id='references'>
+<h2>References</h2>
+<p>[1] http://www.w3.org/TR/P3P11</p>
+<p>[2] http://cups.cs.cmu.edu/soups/2009/proceedings/a4-kelley.pdf</p>
+<p>[3] http://www.ftc.gov/privacy/privacyinitiatives/ftcfinalreport060228.pdf</p>
+<p>[4] http://www.azarask.in/blog/post/what-should-matter-in-privacy/</p>
+<p>[5] http://dev.w3.org/2009/dap/docs/privacy-license.html</p>
+<p>[6] http://tools.ietf.org/html/draft-ietf-geopriv-arch-01</p>
+<p>[7] http://identityproject.lse.ac.uk/mary.pdf</p>
+<p>[8] https://wiki.mozilla.org/Drumbeat/Challenges/Privacy_Icons</p>
+<p>[9] http://asset.netzpolitik.org/wp-upload/data-privacy-icons-v01.pdf</p>
+<p>[10] http://creativecommons.org/about/licenses/</p>
+<p>[11] http://creativecommons.org/choose/</p>
+</section>
+</body>
+</html>

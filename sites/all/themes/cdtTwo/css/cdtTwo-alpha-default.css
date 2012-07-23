@@ -1,0 +1,56 @@
+/* This file will hold styles for all layouts using the alpha grid (i.e. not the mobile layout). */
+
+body {
+background-color: #000000;
+}
+
+ #main-menu {
+    border-bottom: 1px solid #F1F1F1;
+    border-top: 1px solid #F1F1F1;
+    margin-top:13px;
+    padding: 5px 0;
+	float:right;
+	}
+	
+ #main-menu ul li {
+    padding: 0;
+  }
+  
+ #main-menu li a {
+ /*   background-image:url(images/cdt_menu.png); */
+	background-color: #cc0000;
+	background-image: -webkit-linear-gradient(top, #cc0000, #8d0706);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc0000), to(#8d0706));
+	background-image: -moz-linear-gradient(top, #cc0000, #8d0706);
+	color: white;
+	font-family: Helvetica, Arial, serif;
+	font-size: 13px;
+	font-style: normal;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-shadow: 0.1em 0.1em 0.05em #333;
+	text-decoration: none;
+    display:block;
+    float:right;
+    margin-right:1px;
+    overflow:hidden;
+	padding: 6px;
+  }
+  
+ #main-menu li a:hover {
+    background-color: #000000;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000));
+  }
+  
+ #main-menu li.menu-1038 a {
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#077688), to(#25bc25)) !important;
+	}
+
+ #main-menu li.menu-1038 a:hover {
+   background-color: #000000;
+   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000)) !important;
+   }
+   
+.flex-direction-nav {
+    display: inline;
+	}

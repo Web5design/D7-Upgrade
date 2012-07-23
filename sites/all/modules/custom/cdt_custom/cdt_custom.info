@@ -1,0 +1,4 @@
+name = CDT Custom
+description = Miscellaneous glue code for cdt.org.
+package = CDT
+core = 6.x

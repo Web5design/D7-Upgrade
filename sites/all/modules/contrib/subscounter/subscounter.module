@@ -1,0 +1,99 @@
+<?php
+// $Id: subscounter.module,v 1.2.2.1 2009/04/30 17:30:13 ivanjaros Exp $
+
+// Generates content of the module's admin page.
+function subscounter_administration() {
+
+  if (variable_get('statistics_enable_access_log', 0) == '0') {
+    drupal_set_message(t('You must <a href="/admin/reports/settings">enable logging</a> first!'), 'error');
+  }
+
+  for ($i = 0; $i <= 48; $i++) {
+    $number[$i * 3600] = $i . ' ' . t('hours');
+  }
+  
+  $form['subscounter'] = array(
+  '#type' => 'select',
+  '#title' => t('Time to count'),
+  '#description' => t('Choose number of hours to count feed subscribers for. Default is <strong>24 hours</strong>.'),
+  '#default_value' => variable_get('subscounter', '86400'),
+  '#options' => $number,
+  '#multiple' => FALSE,
+  );
+
+  return system_settings_form($form);  
+}
+
+  
+/*
+* Implementation of hook_menu().
+* http://api.drupal.org/api/function/hook_menu/6
+*/
+function subscounter_menu() {
+  $items = array();
+  
+  $items['admin/settings/subscounter'] = array(
+    'title' => 'Subscribers Counter',
+    'description' => t('Administer Subscribers Counter module.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subscounter_administration'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/*
+* Implementation of hook_block().
+* http://api.drupal.org/api/function/hook_block/6
+*/
+function subscounter_block($op = 'list', $delta = 0, $edit = array())
+  {
+      if ($op == 'list') {
+          $block[0] = array('info' => t('Number of feed subscribers'));
+          return $block;
+      }
+      
+      if ($op == 'view') {
+          switch ($delta) {
+              case 0:
+                  $blok = array('subject' => t('Number of feed subscribers'), 'content' => subscounter_subscribers());
+                  break;
+          }
+      
+      $logging = (variable_get('statistics_enable_access_log', 0));
+      if ($logging == '1') {
+          return $blok;
+          }
+      }
+  }
+
+// Generates content of the module's block.
+function subscounter_subscribers() {
+ $period = variable_get('subscounter', '86400');
+ $den = time() - $period;
+ $q = db_query('SELECT DISTINCT hostname FROM {accesslog} WHERE path = "rss.xml" OR path LIKE "%/feed" AND timestamp > %d', $den);
+ 
+ while ($fetch = db_fetch_object($q)) {
+   $num++;
+ }
+ 
+ if (!$num) {
+   $num = '0';
+ }
+ 
+ $prepare = '<div id="subscounter"><span id="subscr-num">' . $num . '</span>' . t('subscribers') . '</div>';
+ $body = l($prepare, 'rss.xml', array('html' => TRUE));
+ return $body;
+}
+
+/* 
+*  Implementation of hook_init().
+*  http://api.drupal.org/api/function/hook_init/6
+*/
+function subscounter_init() {
+  drupal_add_css(drupal_get_path('module', 'subscounter') .'/subscounter.css');
+}
+
+?>

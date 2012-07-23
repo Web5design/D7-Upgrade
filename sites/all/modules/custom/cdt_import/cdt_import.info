@@ -1,0 +1,4 @@
+name = CDT Import
+description = Imports content from old cdt site into Drupal.
+package = CDT
+core = 6.x

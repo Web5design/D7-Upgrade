@@ -1,0 +1,221 @@
+/* This file will hold styles for the mobile version of your website (mobile first). */
+/* This also can include ANY global CSS that applies site-wide. Unless overwritten by a more specific style rule, CSS declarations in global.css will apply site-wide. */
+
+a {
+  text-decoration: none !important;
+  }
+  
+a:hover {
+color: #cc0000;
+}
+
+a {
+text-decoration: none;
+}
+
+body {
+background-color: #ffffff;
+}
+
+#zone-user {
+background-color: #ffffff;
+}
+
+#zone-branding {
+background-color: #ffffff;
+}
+
+#zone-menu {
+background-color: #ffffff;
+}
+
+#zone-header {
+background-color: #ffffff;
+}
+
+#zone-preface {
+background-color: #ffffff;
+}
+
+#zone-content {
+background-color: #ffffff;
+}
+
+#zone-postscript {
+background-color: #ffffff;
+}
+
+#zone-footer {
+background-color: #ffffff;
+}
+
+h2.block-title {
+ /*   background:transparent url(images/cdt_gradient_sprite.png) repeat-x scroll left -41px; */
+    background-color: #cc0000;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc0000), to(#8d0706));
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc0000), to(#8d0706));
+	background-image: -moz-linear-gradient(top, #cc0000, #8d0706);	
+    border-bottom: 1px solid #D7D7D7;
+    color: white;
+    font-size: 13px;
+	font-style: normal;
+    font-weight: bold;
+    letter-spacing:0.2px;
+    margin: 12px 0 8px;	
+    padding:6px 10px 6px;
+    text-transform: uppercase;
+    text-shadow: 0.1em 0.1em 0.05em #333;
+}
+
+ #main-menu {
+    border-bottom: 1px solid #F1F1F1;
+    border-top: 1px solid #F1F1F1;
+    margin-top:13px;
+    padding: 5px 0;
+	float:right;
+	}
+	
+ #main-menu ul li {
+    padding: 0;
+  }
+  
+ #main-menu li a {
+ /*   background-image:url(images/cdt_menu.png); */
+	background-color: #cc0000;
+	background-image: -webkit-linear-gradient(top, #cc0000, #8d0706);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc0000), to(#8d0706));
+	background-image: -moz-linear-gradient(top, #cc0000, #8d0706);
+	color: white;
+	font-family: Helvetica, Arial, serif;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-shadow: 0.1em 0.1em 0.05em #333;
+	text-decoration: none;
+    float:right;
+    margin-right:1px;
+    overflow:hidden;
+	padding: 3px;
+  }
+  
+ #main-menu li a:hover {
+    background-color: #000000;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000));
+  }
+  
+ #main-menu li.menu-1038 a {
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#077688), to(#25bc25)) !important;
+	}
+
+ #main-menu li.menu-1038 a:hover {
+   background-color: #000000;
+   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000)) !important;
+   }
+   
+ /* #block-menu-secondary-menu .menu li a {
+	color: white;
+	font-family: Helvetica, Arial, serif;
+	font-size: 13px;
+	font-style: normal;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-shadow: 0.1em 0.1em 0.05em #333;
+	text-decoration: none;
+    display:inline;
+    float:right;
+    margin-right:1px;
+    overflow:hidden;
+	padding: 6px;
+  } */
+   
+#tagline {
+    background: url("/sites/all/themes/cdt/images/cdt_tagline.png") no-repeat scroll left top transparent;
+    display: block;
+    float: left;
+    height: 64px;
+    width: 185px;
+	}
+	
+.homeslides {
+    width: auto !important;
+	max-width: 100% !important;
+	height: auto !important;
+	}
+
+.homeslides img {
+    width: auto !important;
+	max-width: 100% !important;
+	height: auto !important;
+	}
+	
+.homeslidelist img {
+    width: auto !important;
+	max-width: 100% !important;
+	height: auto !important;
+	}
+	
+.homeslidelist {
+    width: auto !important;
+	max-width: 100% !important;
+	height: auto !important;
+	}
+	
+.flex-direction-nav {
+    display: none;
+	}
+	
+.form-submit {
+    background-color: #166a8f !important;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a88a4), to(#166a8f)) !important;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a88a4), to(#166a8f)) !important;
+    background-image: -moz-linear-gradient(top, #6a88a4, #166a8f) !important;    
+    border-bottom: 1px solid #D7D7D7;
+    font-family: Helvetica, Arial, serif;
+    font-size: 13px;
+    cursor: pointer;
+    font-style: normal;
+    color: #ffffff !important;
+    font-weight: bold;
+    letter-spacing:0.2px;
+    margin: 12px 0 8px;    
+    padding:6px 10px 6px;
+    text-transform: uppercase;
+  /*  text-shadow: 0.1em 0.1em 0.05em #333; */
+    }
+	
+table
+{
+	font-family: "Arial", Sans-Serif;
+	font-size: 12px;
+	margin: 0px;
+	text-align: left;
+	border-collapse: collapse;
+}
+th
+{
+	font-size: 13px;
+	font-weight: normal;
+	padding: 8px;
+	background: #c54343;
+	border-top: 4px solid #6a88a4;
+	border-bottom: 1px solid #fff;
+	color: #fff;
+}
+td
+{
+	padding: 8px;
+	background: #e8edff; 
+	border-bottom: 1px solid #fff;
+	color: #669;
+	border-top: 1px solid transparent;
+}
+tr:hover td
+{
+	background: #d0dafd;
+	color: #339;
+}
+
+.view-header {
+   font-size: 11px;
+   }

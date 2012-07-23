@@ -1,0 +1,9 @@
+#subscounter {
+ background: transparent url(/misc/feed.png) no-repeat 0 center;
+ padding-left: 20px;
+}
+
+#subscr-num {
+ padding: 0px 10px;
+ font-weight: bold;
+}
