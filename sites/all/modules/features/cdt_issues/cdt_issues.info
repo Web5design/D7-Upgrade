@@ -1,0 +1,17 @@
+name = CDT Issues
+description = The Issues vocabulary
+core = 7.x
+package = Features
+dependencies[] = features
+dependencies[] = field_sql_storage
+dependencies[] = file
+dependencies[] = image
+dependencies[] = media
+dependencies[] = taxonomy
+dependencies[] = text
+features[features_api][] = api:1
+features[field][] = taxonomy_term-issues-field_all_about
+features[field][] = taxonomy_term-issues-field_issue_header
+features[field][] = taxonomy_term-issues-field_issue_placeholder
+features[field][] = taxonomy_term-issues-field_parent_video
+features[taxonomy][] = issues
