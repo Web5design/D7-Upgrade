@@ -91,8 +91,8 @@
  */
  //$db_url = 'mysqli://cdt:N7MY1cpM9n2x@localhost/newcdt';
  $db_url = array(
-   'default' => 'mysqli://cdtuser:6245cdt@localhost/testserver',
-   'oldcdt'  => 'mysqli://cdtuser:6245cdt@localhost/cdtimportdb',
+   'default' => 'mysqli://int_cdt:charlie3@localhost/int_cdt',
+   'oldcdt'  => 'mysqli://int_cdt:charlie3@localhost/int_cdt',
  );
 $db_prefix = '';
 
@@ -248,9 +248,9 @@ $databases = array (
     'default' => 
     array (
       'driver' => 'mysql',
-      'database' => 'testserver',
-      'username' => 'cdtuser',
-      'password' => '6245cdt',
+      'database' => 'int_cdt',
+      'username' => 'int_cdt',
+      'password' => 'charlie3',
       'host' => 'localhost',
       'port' => '',
       'prefix' => '',
@@ -261,9 +261,9 @@ $databases = array (
     'default' => 
     array (
       'driver' => 'mysql',
-      'database' => 'cdtimportdb',
-      'username' => 'cdtuser',
-      'password' => '6245cdt',
+      'database' => 'int_cdt',
+      'username' => 'int_cdt',
+      'password' => 'charlie3',
       'host' => 'localhost',
       'port' => '',
       'prefix' => '',
