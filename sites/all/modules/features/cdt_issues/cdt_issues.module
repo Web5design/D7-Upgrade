@@ -153,7 +153,7 @@ function _cdt_issues_child_issues($vid, $parent_nid, $parent_tid) {
       foreach ($fields as $field) {
         _cdt_issues_set_field($term, $node, $field);
       }
-      $output .= "&nbdp;&nbsp;Updated Child term: " . $child->title . "<br>\n";
+      $output .= "&nbsp;&nbsp;Updated Child term: " . $child->title . "<br>\n";
       taxonomy_term_save($term);
       $output .= _cdt_issues_grandchild_issues($vid, $node->nid, $term->tid);
     }
@@ -184,7 +184,7 @@ function _cdt_issues_grandchild_issues($vid, $parent_nid, $parent_tid) {
         $term = _cdt_issues_create_taxonomy_term($vid, $child->title, $parent_tid);
       }
       _cdt_issues_set_field($term, $node, 'body', 'description');
-      $output .= "&nbdp;&nbsp;&nbdp;&nbsp;Updated Grandchild term: " . $child->title . "<br>\n";
+      $output .= "&nbsp;&nbsp;&nbsp;&nbsp;Updated Grandchild term: " . $child->title . "<br>\n";
       taxonomy_term_save($term);
     }
   }
