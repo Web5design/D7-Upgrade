@@ -120,8 +120,9 @@ function cdt_issues_issues() {
     foreach ($fields as $field) {
       _cdt_issues_set_field($term, $node, $field);
     }
+    $output .= "Updated Parent term: " . $issue->title . "<br>\n";
     taxonomy_term_save($term);
-    _cdt_issues_child_issues($vid, $node->nid, $tid);
+    $output .= _cdt_issues_child_issues($vid, $node->nid, $tid);
   }
   return $output;
 }
@@ -133,7 +134,8 @@ function cdt_issues_issues() {
  * @param  int $parent_tid - TID of parent term
  */
 function _cdt_issues_child_issues($vid, $parent_nid, $parent_tid) {
-  // Get list of Parent nodes
+  $output = '';
+  // Get list of Child nodes
   $children = db_query("SELECT nid, title FROM {node} WHERE type = 'child'");
   foreach ($children as $child) {
     $node = node_load($child->nid);
@@ -152,10 +154,12 @@ function _cdt_issues_child_issues($vid, $parent_nid, $parent_tid) {
       foreach ($fields as $field) {
         _cdt_issues_set_field($term, $node, $field);
       }
+      $output .= "  Updated Child term: " . $child->title . "<br>\n";
       taxonomy_term_save($term);
-      _cdt_issues_grandchild_issues($vid, $node->nid, $tid);
+      $output .= _cdt_issues_grandchild_issues($vid, $node->nid, $tid);
     }
   }
+  return $output;
 }
 
 /**
@@ -165,7 +169,8 @@ function _cdt_issues_child_issues($vid, $parent_nid, $parent_tid) {
  * @param  int $parent_tid - TID of parent term
  */
 function _cdt_issues_grandchild_issues($vid, $parent_nid, $parent_tid) {
-  // Get list of Parent nodes
+  $output = '';
+  // Get list of Grandchild nodes
   $children = db_query("SELECT nid, title FROM {node} WHERE type = 'grandchild'");
   foreach ($children as $child) {
     $node = node_load($child->nid);
@@ -180,8 +185,10 @@ function _cdt_issues_grandchild_issues($vid, $parent_nid, $parent_tid) {
         $term = _cdt_issues_create_taxonomy_term($vid, $child->title, $parent_tid);
       }
       _cdt_issues_set_field($term, $node, 'body', 'description');
+      $output .= "    Updated Grandchild term: " . $child->title . "<br>\n";
       taxonomy_term_save($term);
     }
   }
+  return $output;
 }
 
