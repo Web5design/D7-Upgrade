@@ -99,7 +99,8 @@ function cdt_issues_update_7100(&$sandbox) {
 function cdt_issues_update_7101(&$sandbox) {
   include_once(drupal_get_path('module', 'cdt_issues') .'/cdt_issues.inc');
 
-  $types = array('blog', 'brief', 'comments', 'event', 'file', 'letter', 'pr_statement', 'paper', 'planted_press', 'policy', 'report', 'testimony');
+  $types = array('blog', 'brief', 'comments', 'event', 'file', 'letter', 'pr_statement',
+    'paper', 'planted_press', 'policy', 'press_hit', 'report', 'testimony');
 
   if (!isset($sandbox['progress'])) {
     $sandbox['progress'] = 0; // The count of nodes visited so far.

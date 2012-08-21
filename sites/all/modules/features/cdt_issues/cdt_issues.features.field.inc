@@ -730,6 +730,78 @@ function cdt_issues_field_default_fields() {
     ),
   );
 
+  // Exported field: 'node-press_hit-field_issues'.
+  $fields['node-press_hit-field_issues'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_issues',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid',
+          ),
+          'table' => 'taxonomy_term_data',
+        ),
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'issues',
+            'parent' => '0',
+          ),
+        ),
+      ),
+      'translatable' => '0',
+      'type' => 'taxonomy_term_reference',
+    ),
+    'field_instance' => array(
+      'bundle' => 'press_hit',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => '6',
+        ),
+        'teaser' => array(
+          'label' => 'hidden',
+          'module' => 'hs_taxonomy',
+          'settings' => array(),
+          'type' => 'hs_taxonomy_term_reference_hierarchical_text',
+          'weight' => '6',
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_issues',
+      'label' => 'Issues',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '8',
+      ),
+    ),
+  );
+
   // Exported field: 'node-report-field_issues'.
   $fields['node-report-field_issues'] = array(
     'field_config' => array(
