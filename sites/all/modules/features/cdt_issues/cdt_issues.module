@@ -1,24 +1,8 @@
 <?php
 
-/**
- * Implements hook_menu().
- */
-function cdt_issues_menu() {
-  $items = array();
-  $items['migrate/issues'] = array(
-    'title' => 'Migrate CDT Issues',
-    'description' => 'Migrate Issue content to Issues taxonomy.',
-    'page callback' => 'cdt_issues_issues',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['migrate/taxonomy'] = array(
-    'title' => 'Migrate CDT Issues',
-    'description' => 'Migrate node references to taxonomy references.',
-    'page callback' => 'cdt_issues_taxonomy',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-  return $items;
-}
+/* blank module file */
 
+/**
+ * work is done in the update/install hooks in cdt_issues.install and
+ * helper routines in cdt_issues.inc
+ */
