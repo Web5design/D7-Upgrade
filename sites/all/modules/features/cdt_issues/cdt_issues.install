@@ -130,7 +130,10 @@ function cdt_issues_update_7101(&$sandbox) {
     ->execute();
   foreach ($result as $row) {
     // update the current parent issue
-    $sandbox['messages'][] = cdt_issues_taxonomy($map, $row->nid);
+    $message = cdt_issues_taxonomy($map, $row->nid);
+    if (!empty($message)) {
+      $sandbox['messages'][] = $message;
+    }
     // Update our progress information.
     $sandbox['progress']++;
     $sandbox['current_node'] = $row->nid;

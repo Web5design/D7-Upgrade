@@ -1,4 +1,12 @@
-; $Id: diff.info,v 1.2.2.1 2008/02/22 12:51:28 roetzi Exp $
 name = Diff
 description = Show difference between node revisions.
-core = 6.x
+core = 7.x
+
+files[] = DiffEngine.php
+
+; Information added by drupal.org packaging script on 2011-07-21
+version = "7.x-2.0"
+core = "7.x"
+project = "diff"
+datestamp = "1311239815"
+
