@@ -32,6 +32,12 @@ function cdt_news_view_context_default_contexts() {
           'region' => 'content',
           'weight' => '-10',
         ),
+        'menu_block-1' => array(
+          'module' => 'menu_block',
+          'delta' => 1,
+          'region' => 'sidebar_second',
+          'weight' => '-10',
+        ),
       ),
     ),
   );

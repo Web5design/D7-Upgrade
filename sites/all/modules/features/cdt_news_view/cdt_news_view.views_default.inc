@@ -568,6 +568,23 @@ function cdt_news_view_views_default_views() {
   );
   $handler->display->display_options['fields']['field_date']['field_api_classes'] = 0;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
+  /* Contextual filter: Content: Has taxonomy term ID (with depth) */
+  $handler->display->display_options['arguments']['term_node_tid_depth']['id'] = 'term_node_tid_depth';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['table'] = 'node';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['field'] = 'term_node_tid_depth';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_options']['term_page'] = 1;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_options']['node'] = 0;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_options']['limit'] = 0;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['depth'] = '0';
+  $handler->display->display_options['arguments']['term_node_tid_depth']['break_phrase'] = 1;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['set_breadcrumb'] = 0;
+  $handler->display->display_options['arguments']['term_node_tid_depth']['use_taxonomy_term_path'] = 0;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -600,7 +617,7 @@ function cdt_news_view_views_default_views() {
   $handler->display->display_options['filters']['field_issues_tid']['field'] = 'field_issues_tid';
   $handler->display->display_options['filters']['field_issues_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_issues_tid']['expose']['operator_id'] = 'field_issues_tid_op';
-  $handler->display->display_options['filters']['field_issues_tid']['expose']['label'] = 'Issues (field_issues)';
+  $handler->display->display_options['filters']['field_issues_tid']['expose']['label'] = 'Issues';
   $handler->display->display_options['filters']['field_issues_tid']['expose']['operator'] = 'field_issues_tid_op';
   $handler->display->display_options['filters']['field_issues_tid']['expose']['identifier'] = 'field_issues_tid';
   $handler->display->display_options['filters']['field_issues_tid']['expose']['reduce'] = 0;
