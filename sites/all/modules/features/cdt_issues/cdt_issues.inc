@@ -63,9 +63,11 @@ function _cdt_issues_set_field(&$term, $node, $field, $dest = NULL) {
   if (isset($node->{$field}['und'][0]['value'])) {
     if (isset($dest)) {
       $term->{$dest} = $node->{$field}['und'][0]['value'];
+      $term->format = $node->{$field}['und'][0]['format'];
     }
     else {
       $term->{$field}['und'][0]['value'] = $node->{$field}['und'][0]['value'];
+      $term->{$field}['und'][0]['format'] = $node->{$field}['und'][0]['format'];
     }
   }
   elseif (isset($node->{$field}['und'][0]['fid'])) {

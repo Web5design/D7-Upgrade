@@ -5,7 +5,6 @@ package = Features
 php = 5.2.4
 dependencies[] = features
 dependencies[] = file
-dependencies[] = hs_taxonomy
 dependencies[] = image
 dependencies[] = media
 dependencies[] = taxonomy
