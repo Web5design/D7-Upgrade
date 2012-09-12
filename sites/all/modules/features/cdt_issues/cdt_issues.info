@@ -23,6 +23,7 @@ features[field][] = node-press_hit-field_issues
 features[field][] = node-report-field_issues
 features[field][] = node-testimony-field_issues
 features[field][] = taxonomy_term-issues-field_all_about
+features[field][] = taxonomy_term-issues-field_intro
 features[field][] = taxonomy_term-issues-field_issue_header
 features[field][] = taxonomy_term-issues-field_issue_placeholder
 features[field][] = taxonomy_term-issues-field_parent_video

@@ -1008,7 +1008,75 @@ function cdt_issues_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '4',
+        'weight' => '2',
+      ),
+    ),
+  );
+
+  // Exported field: 'taxonomy_term-issues-field_intro'.
+  $fields['taxonomy_term-issues-field_intro'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_intro',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(
+        'allowed_values' => '',
+        'allowed_values_php' => '',
+        'front_end_editable' => 0,
+        'max_length' => '',
+        'text_processing' => '1',
+      ),
+      'translatable' => '0',
+      'type' => 'text_long',
+      'type_name' => 'parent',
+    ),
+    'field_instance' => array(
+      'bundle' => 'issues',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 5,
+        ),
+      ),
+      'entity_type' => 'taxonomy_term',
+      'field_name' => 'field_intro',
+      'label' => 'Intro',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5',
+        ),
+        'type' => 'text_textarea',
+        'weight' => '3',
       ),
     ),
   );
@@ -1037,7 +1105,7 @@ function cdt_issues_field_default_fields() {
       'locked' => '0',
       'module' => 'image',
       'settings' => array(
-        'default_image' => 0,
+        'default_image' => NULL,
         'description_field' => '0',
         'list_default' => 1,
         'list_field' => '0',
@@ -1086,7 +1154,7 @@ function cdt_issues_field_default_fields() {
           'progress_indicator' => 'bar',
         ),
         'type' => 'image_image',
-        'weight' => '5',
+        'weight' => '4',
       ),
     ),
   );
@@ -1115,7 +1183,7 @@ function cdt_issues_field_default_fields() {
       'locked' => '0',
       'module' => 'image',
       'settings' => array(
-        'default_image' => 0,
+        'default_image' => NULL,
         'description_field' => '0',
         'list_default' => 1,
         'list_field' => '0',
@@ -1164,7 +1232,7 @@ function cdt_issues_field_default_fields() {
           'progress_indicator' => 'bar',
         ),
         'type' => 'image_image',
-        'weight' => '7',
+        'weight' => '6',
       ),
     ),
   );
@@ -1242,7 +1310,7 @@ function cdt_issues_field_default_fields() {
           'progress_indicator' => 'throbber',
         ),
         'type' => 'media_generic',
-        'weight' => '6',
+        'weight' => '5',
       ),
     ),
   );
@@ -1251,6 +1319,7 @@ function cdt_issues_field_default_fields() {
   // Included for use with string extractors like potx.
   t('All About');
   t('Header Graphic');
+  t('Intro');
   t('Intro Video');
   t('Issues');
   t('Placeholder Image');
