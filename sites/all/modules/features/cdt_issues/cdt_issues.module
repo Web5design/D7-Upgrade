@@ -1,0 +1,97 @@
+<?php
+
+/**
+ * Most Issues migration is done by the update hook in *.install
+ * But Menu links are added to allow updating taxonomy later
+ */
+
+function cdt_issues_menu() {
+  $items = array();
+  $items['admin/cdt_issues/taxonomy'] = array(
+    'title' => 'CDT Update Issues Taxonomy',
+    'description' => 'CDT update Issues taxonomy from old parent/child/grandchild nodes',
+    'page callback' => 'cdt_issues_update_taxonomy',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * Redirect taxonomy term pages to our own build function
+ */
+function cdt_issues_menu_alter(&$items) {
+  $items['taxonomy/term/%taxonomy_term']['page callback'] = 'cdt_issues_taxonomy_term_page';
+  $items['taxonomy/term/%taxonomy_term']['module'] = 'cdt_issues';
+  unset($items['taxonomy/term/%taxonomy_term']['file']);
+}
+
+/**
+ * Loop through all Parent nodes and build the Issues taxonomy hierarchy
+ */
+function cdt_issues_update_taxonomy() {
+  include_once(drupal_get_path('module', 'cdt_issues') .'/cdt_issues.inc');
+
+  // Find Issue taxonomy
+  $vocabs = taxonomy_get_vocabularies();
+  $vid = NULL;
+  foreach ($vocabs as $vocab) {
+    if ($vocab->machine_name == 'issues') {
+      $vid = $vocab->vid;
+      break;
+    }
+  }
+  if (!isset($vid)) {
+    drupal_set_message(t('Cannot find "issues" taxonomy.'), 'error');
+    return '';
+  }
+
+  // Clear the table for saving the nid->tid mapping
+  db_delete('cdt_mapping')->execute();
+
+  $output = '';
+  // Retrieve the Parent nodes.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->orderBy('n.nid', 'ASC')
+    ->condition('n.type', 'parent')
+    ->execute();
+  foreach ($result as $row) {
+    // update the current parent issue
+    $output .= cdt_issues_populate_parent($vid, $row->nid);
+  }
+  return $output;
+}
+
+/**
+ * Build a taxonomy detail page
+ * Override normal behavior for Issue vocabulary to remove term list
+ * code taken from taxonomy_term_page in modules/taxonomy/taxonomy.pages.inc
+ */
+function cdt_issues_taxonomy_term_page($term) {
+  drupal_set_title($term->name);
+  // Build breadcrumb based on the hierarchy of the term.
+  $current = (object) array(
+    'tid' => $term->tid,
+  );
+  // @todo This overrides any other possible breadcrumb and is a pure hard-coded
+//   presumption. Make this behavior configurable per vocabulary or term.
+  $breadcrumb = array();
+  while ($parents = taxonomy_get_parents($current->tid)) {
+    $current = array_shift($parents);
+    $breadcrumb[] = l($current->name, 'taxonomy/term/' . $current->tid);
+  }
+  $breadcrumb[] = l(t('Home'), NULL);
+  $breadcrumb = array_reverse($breadcrumb);
+  drupal_set_breadcrumb($breadcrumb);
+  drupal_add_feed('taxonomy/term/' . $term->tid . '/feed', 'RSS - ' . $term->name);
+
+  $build = array();
+
+  $build['term_heading'] = array(
+    '#prefix' => '<div class="term-listing-heading">',
+    '#suffix' => '</div>',
+    'term' => taxonomy_term_view($term, 'full'),
+  );
+
+  return $build;
+}

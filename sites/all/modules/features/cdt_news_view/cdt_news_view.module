@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the CDT News View feature.
+ */
+
+include_once 'cdt_news_view.features.inc';

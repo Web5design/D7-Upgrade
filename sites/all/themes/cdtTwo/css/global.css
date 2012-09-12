@@ -4,7 +4,7 @@
 a {
   text-decoration: none !important;
   }
-  
+
 a:hover {
 color: #cc0000;
 }
@@ -63,7 +63,7 @@ h2.block-title {
 	font-smooth: auto;
     font-weight: bold;
     /* letter-spacing:1.2px; */
-    margin: 12px 0 8px;	
+    margin: 12px 0 8px;
     padding:6px 10px 6px;
     text-transform: uppercase;
  /*   text-shadow: 0.1em 0.1em 0.05em #333; */
@@ -77,17 +77,17 @@ h2.block-title {
     padding: 5px 0;
 	float:right;
 	}
-	
+
  #main-menu ul li {
     padding: 0;
   }
-  
+
  #main-menu li a {
  /*   background-image:url(images/cdt_menu.png); */
 	background-color: #cc0000;
 /*	background-image: -webkit-linear-gradient(top, #cc0000, #8d0706);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc0000), to(#8d0706));
-	background-image: -moz-linear-gradient(top, #cc0000, #8d0706); */	
+	background-image: -moz-linear-gradient(top, #cc0000, #8d0706); */
 	color: white;
 	font-family: "Lato" !important;
 	font-size: 12px;
@@ -101,12 +101,12 @@ h2.block-title {
     overflow:hidden;
 	padding: 3px;
   }
-  
+
  #main-menu li a:hover {
     background-color: #000000;
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000));
   }
-  
+
  #main-menu li.menu-1038 a {
     /* background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#077688), to(#25bc25)) !important;
 	*/}
@@ -115,7 +115,7 @@ h2.block-title {
    background-color: #000000;
    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#000000)) !important;
    }
-   
+
  /* #block-menu-secondary-menu .menu li a {
 	color: white;
 	font-family: Helvetica, Arial, serif;
@@ -131,7 +131,7 @@ h2.block-title {
     overflow:hidden;
 	padding: 6px;
   } */
-   
+
 #tagline {
     background: url("/sites/all/themes/cdt/images/cdt_tagline.png") no-repeat scroll left top transparent;
     display: block;
@@ -139,7 +139,7 @@ h2.block-title {
     height: 64px;
     width: 185px;
 	}
-	
+
 .homeslides {
     width: auto !important;
 	max-width: 100% !important;
@@ -151,23 +151,23 @@ h2.block-title {
 	max-width: 100% !important;
 	height: auto !important;
 	}
-	
+
 .homeslidelist img {
     width: auto !important;
 	max-width: 100% !important;
 	height: auto !important;
 	}
-	
+
 .homeslidelist {
     width: auto !important;
 	max-width: 100% !important;
 	height: auto !important;
 	}
-	
+
 .flex-direction-nav {
     display: none;
 	}
-	
+
 .form-submit {
     background-color: #166a8f !important;
   /*  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a88a4), to(#166a8f)) !important;
@@ -181,12 +181,12 @@ h2.block-title {
     color: #ffffff !important;
     font-weight: bold;
     letter-spacing:0.2px;
-    margin: 12px 0 8px;    
+    margin: 12px 0 8px;
     padding:6px 10px 6px;
     text-transform: uppercase;
   /*  text-shadow: 0.1em 0.1em 0.05em #333; */
     }
-	
+
 table
 {
 	font-family: "Arial", Sans-Serif;
@@ -208,7 +208,7 @@ th
 td
 {
 	padding: 8px;
-	background: #e8edff; 
+	background: #e8edff;
 	border-bottom: 1px solid #fff;
 	color: #669;
 	border-top: 1px solid transparent;
@@ -261,4 +261,7 @@ input[type="button"]:hover,
   -webkit-box-shadow: #06f 0 0 7px;
   background: #cc0000 !important;
   z-index: 1; /* For Opera */
+}
+.menu-name-menu-issues ul.menu {
+  padding-left: 20px;
 }

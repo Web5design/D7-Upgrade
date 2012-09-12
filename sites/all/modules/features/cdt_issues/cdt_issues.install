@@ -1,0 +1,154 @@
+<?php
+
+function cdt_issues_schema() {
+  $schema['cdt_mapping'] = array(
+    // specification for table "cdt_mapping"
+    'description' => 'Mapping between old issue nid and new tid.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The issue node id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'tid' => array(
+        'description' => 'The new term id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'cdt_map_nid' => array('nid'),
+      'cdt_map_tid' => array('tid'),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Create Issue taxonomy terms based upon old parent/child/grandchild nodes
+ */
+function cdt_issues_update_7100(&$sandbox) {
+  include_once(drupal_get_path('module', 'cdt_issues') .'/cdt_issues.inc');
+
+
+  if (!isset($sandbox['progress'])) {
+    // Find Issue taxonomy
+    $vocabs = taxonomy_get_vocabularies();
+    $vid = NULL;
+    foreach ($vocabs as $vocab) {
+      if ($vocab->machine_name == 'issues') {
+        $vid = $vocab->vid;
+        break;
+      }
+    }
+    if (!isset($vid)) {
+      throw new DrupalUpdateException(t('Cannot find "issues" taxonomy.'));
+      return;
+    }
+    $sandbox['progress'] = 0; // The count of nodes visited so far.
+    // Total nodes that must be visited.
+    $sandbox['max'] = db_query("SELECT count(nid) FROM {node} WHERE type = 'parent'")->fetchField();
+    // A place to store messages during the run.
+    $sandbox['messages'] = array();
+    $sandbox['current_node'] = -1; // Last node read via the query.
+    $sandbox['vid'] = $vid;
+    // Clear the table for saving the nid->tid mapping
+    db_delete('cdt_mapping')->execute();
+  }
+
+  $vid = $sandbox['vid'];
+  // Process one parent node at a time
+  $limit = 1;
+
+  // Retrieve the next group of nids.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->orderBy('n.nid', 'ASC')
+    ->condition('n.type', 'parent')
+    ->where('n.nid > :nid', array(':nid' => $sandbox['current_node']))
+    ->extend('PagerDefault')
+    ->limit($limit)
+    ->execute();
+  foreach ($result as $row) {
+    // update the current parent issue
+    $sandbox['messages'][] = cdt_issues_populate_parent($vid, $row->nid);
+    // Update our progress information.
+    $sandbox['progress']++;
+    $sandbox['current_node'] = $row->nid;
+  }
+
+  // Set the "finished" status, to tell batch engine whether this function
+  // needs to run again. If you set a float, this will indicate the progress
+  // of the batch so the progress bar will update.
+  $sandbox['#finished'] = ($sandbox['progress'] >= $sandbox['max']) ? TRUE : ($sandbox['progress'] / $sandbox['max']);
+
+  if ($sandbox['#finished']) {
+    // hook_update_N() may optionally return a string which will be displayed
+    // to the user.
+    $final_message = '<ul><li>' . implode('</li><li>', $sandbox['messages']) . "</li></ul>";
+    return t('Conversion of Issue terms completed: !message', array('!message' => $final_message));
+  }
+}
+
+/**
+ * Convert all issue node references into taxonomy term references
+ */
+function cdt_issues_update_7101(&$sandbox) {
+  include_once(drupal_get_path('module', 'cdt_issues') .'/cdt_issues.inc');
+
+  $types = array('blog', 'brief', 'comments', 'event', 'file', 'letter', 'pr_statement',
+    'paper', 'planted_press', 'policy', 'press_hit', 'report', 'testimony');
+
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0; // The count of nodes visited so far.
+    // Total nodes that must be visited.
+    $sandbox['max'] = db_select('node', 'n')
+      ->fields('n', array('nid', 'type'))
+      ->condition('n.type', $types, 'IN')
+      ->execute()
+      ->rowCount();
+    // A place to store messages during the run.
+    $sandbox['messages'] = array();
+    $sandbox['current_node'] = -1; // Last node read via the query.
+    $sandbox['map'] = cdt_issues_get_mapping();
+  }
+
+  $map = $sandbox['map'];
+  // Process 100 nodes at a time
+  $limit = 100;
+
+  // Retrieve the next group of nids.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->orderBy('n.nid', 'ASC')
+    ->condition('n.type', $types, 'IN')
+    ->where('n.nid > :nid', array(':nid' => $sandbox['current_node']))
+    ->extend('PagerDefault')
+    ->limit($limit)
+    ->execute();
+  foreach ($result as $row) {
+    // update the current parent issue
+    $message = cdt_issues_taxonomy($map, $row->nid);
+    if (!empty($message)) {
+      $sandbox['messages'][] = $message;
+    }
+    // Update our progress information.
+    $sandbox['progress']++;
+    $sandbox['current_node'] = $row->nid;
+  }
+
+  // Set the "finished" status, to tell batch engine whether this function
+  // needs to run again. If you set a float, this will indicate the progress
+  // of the batch so the progress bar will update.
+  $sandbox['#finished'] = ($sandbox['progress'] >= $sandbox['max']) ? TRUE : ($sandbox['progress'] / $sandbox['max']);
+
+  if ($sandbox['#finished']) {
+    // hook_update_N() may optionally return a string which will be displayed
+    // to the user.
+    $final_message = '<ul><li>' . implode('</li><li>', $sandbox['messages']) . "</li></ul>";
+    return t('Conversion of taxonomy completed: !message', array('!message' => $final_message));
+  }
+}
