@@ -26,6 +26,11 @@ function drupad_updates() {
 
     $datas['meta']['projects_types_order'] = array('core', 'module', 'theme');
 
+    // If enabled, we have more categories
+    if (module_exists('update_advanced')) {
+      array_push($datas['meta']['projects_types_order'], 'module-disabled', 'theme-disabled');
+    }
+
     drupad_serve_response($datas);
   }
 }

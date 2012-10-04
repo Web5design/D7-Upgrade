@@ -205,6 +205,9 @@ function drupad_users_edit_uid($uid) {
 
   $form = drupal_get_form('user_profile_form', $account, $category = 'account');
 
+  // In case we are using the Snippet 2 remove the auth token
+  $form['#action'] = preg_replace("/\\?login=Basic(.*)/us", "", $form['#action']);
+
   drupad_form_apply_pre_render($form);
 
   // Recursion and JSON are not friends

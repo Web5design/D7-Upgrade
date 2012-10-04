@@ -58,10 +58,12 @@ function drupad_content_get_content_types() {
  *
  * @see drupad_node_form_submit()
  */
-function drupad_form_node_form_alter(&$form, $form_state, $form_id) {
+function drupad_alter_node_form(&$form, &$form_state, $form_id) {
   // We only alter forms when the iOS app is requesting a node form
   if (arg(0) == 'drupad' && arg(1) == 'content-forms' && isset($form['#node']->type) && $form_id == $form['#node']->type . '_node_form') {
     $form['actions']['submit']['#submit'][] = 'drupad_node_form_submit';
+    // In case we are using the Snippet 2 remove the auth token
+    $form['#action'] = preg_replace("/\\?login=Basic(.*)/us", "", $form['#action']);
     // Vertical tabs are evil, they made me crazy for a whole day
     if (isset($form['additional_settings']) && $form['additional_settings']['#type'] == 'vertical_tabs') {
       unset($form['additional_settings']);
@@ -151,7 +153,7 @@ function drupad_node_add($type, $node = NULL) {
       );
     }
 
-    $form = drupal_get_form($type . '_node_form', (object) $node, array('no_cache' => TRUE));
+    $form = drupal_get_form($type . '_node_form', (object) $node);
 
     drupad_form_apply_pre_render($form);
 

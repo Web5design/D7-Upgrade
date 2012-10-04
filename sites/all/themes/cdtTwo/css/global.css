@@ -49,6 +49,17 @@ background-color: #ffffff;
 background-color: #ffffff;
 }
 
+h1 {
+   word-spacing: 5px;
+   font-family: "Oswald";
+   }
+   
+.block-blog-block-1 .views-field-title {
+   font-family: "Oswald";
+   word-spacing: 5px;
+   font-size: 15px;
+   }
+   
 h2.block-title {
  /*   background:transparent url(images/cdt_gradient_sprite.png) repeat-x scroll left -41px; */
     background-color: #cc0000;
@@ -140,34 +151,29 @@ h2.block-title {
     width: 185px;
 	}
 
-.homeslides {
-    width: auto !important;
-	max-width: 100% !important;
-	height: auto !important;
+ .views-slideshow-cycle-main-frame {
+		width: 100% !important;
+		height: auto;
 	}
 
-.homeslides img {
-    width: auto !important;
-	max-width: 100% !important;
-	height: auto !important;
+	.views-slideshow-cycle-main-frame-row {
+		width: 100% !important;
+		height: auto;
 	}
 
-.homeslidelist img {
-    width: auto !important;
-	max-width: 100% !important;
-	height: auto !important;
+	 .field-slideshow,
+	 .field-slideshow-slide {
+		max-width: 100%;
+		width: 100%;
 	}
 
-.homeslidelist {
-    width: auto !important;
-	max-width: 100% !important;
-	height: auto !important;
+	 .field-slideshow img {
+		max-width: 100%;
+		width: 100%;
+		height: auto;
+		margin: 0;
+		padding: 0;
 	}
-
-.flex-direction-nav {
-    display: none;
-	}
-
 .form-submit {
     background-color: #166a8f !important;
   /*  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a88a4), to(#166a8f)) !important;
@@ -264,4 +270,8 @@ input[type="button"]:hover,
 }
 .menu-name-menu-issues ul.menu {
   padding-left: 20px;
+}
+
+a.dhtml-menu-icon {
+background-image:url('https://www.cdt.org/files/redarrow.png');
 }

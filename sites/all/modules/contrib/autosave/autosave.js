@@ -1,127 +1,100 @@
-var autosaved_form;
+(function ($) {
 
-if (Drupal.jsEnabled) {
-  $(document).ready(function() {
-    $('body').append('<div id="autosave-status"><span id="status"></span><span id="operations"> \
-    <span id="view"><a href="#">View</a></span> \
-    <span id="ignore"><a href="#" title="Ignore/Delete Saved Form">Ignore</a></span> \
-    <span id="keep"><a href="#" title="Keep Saved Form - Revert to Saved">Keep</a></span></span></div>');
-    autosaved = Drupal.settings.autosave;   
-    autosaved_form_id = 'node-form';
-    
-    if (autosaved.serialized) {
-      $('#autosave-status #keep').css('display', 'none').css('visibility', 'hidden');
-      $('#autosave-status #view a').click(function() {
-        if ($(this).html() == 'View') {
-          $('#' + autosaved_form_id).formHash(autosaved.serialized);
-          if (Drupal.settings.autosave.wysiwyg && Drupal.wysiwyg) {
-            // need to loop through any WYSIWYG editor fields and update the visible iframe fields with hidden field content
-            for (var instance in Drupal.wysiwyg.instances) {
-              Drupal.wysiwyg.instances[instance].setContent($('#' + instance).val());
-            }
-          }
-          
-          //CKEditor support
-          if (typeof(CKEDITOR) != 'undefined' ) {
-            for (var instance in CKEDITOR.instances) {
-              CKEDITOR.instances[instance].setData($('#' + instance).val());
-            }
-          }
-          
-          $('#' + autosaved_form_id).focus();
-          $(this).html('Reset');
-          $('#autosave-status #keep').css('display', 'inline').css('visibility', 'visible');
-          $('#autosave-status #keep a').html('Keep'); 
-        }
-        else if ($(this).html() == 'Reset') {
-          form = document.getElementById(autosaved_form_id);
-          form.reset();
+var showingRestoreCommand;
 
-          //CKEditor support
-          if (typeof(CKEDITOR) != 'undefined' ) {
-            for (var instance in CKEDITOR.instances) {
-              CKEDITOR.instances[instance].setData($('#' + instance).val());
-            }
-          }
-          
-          $('#autosave-status #keep').css('display', 'none').css('visibility', 'hidden');
-          $(this).html('View');
-        }    
-        return false;
-      });
-      $('#autosave-status #ignore a').click(function() {
-        $('#autosave-status').fadeOut('slow');
-        form = document.getElementById(autosaved_form_id);
-        form.reset();
+Drupal.behaviors.autosave = {
 
-        //CKEditor support
-        if (typeof(CKEDITOR) != 'undefined' ) {
-          for (var instance in CKEDITOR.instances) {
-            CKEDITOR.instances[instance].setData($('#' + instance).val());
-          }
-        }
-        
-        $('#autosave-status #operations').css('display', 'none').css('visibility', 'hidden');
-        Drupal.attachAutosave();
-        return false;
-      });
-      $('#autosave-status #keep a').click(function() {
-        $('#autosave-status').fadeOut('slow');
-        form = document.getElementById(autosaved_form_id);
-        $('#autosave-status #operations').css('display', 'none').css('visibility', 'hidden');
-        Drupal.attachAutosave();
-        return false;
-      });
-      $('#autosave-status #status').html('This form was autosaved on ' + autosaved.saved_date);
-      $('#autosave-status').slideDown();
+  attach: function (context, settings) {
+    var autosaveSettings;
+
+    if ($('#autosave-status').size() == 0) {
+     // Add a div for us to put messages in.
+      $('body').append('<div id="autosave-status"><span id="status"></span></div>');
     }
-    // There are no autosaved forms, continue with autosave.
-    else {
-      Drupal.attachAutosave();
-    }
-  });
-} 
 
-Drupal.saveForm = function() {
-  if (Drupal.settings.autosave.wysiwyg && Drupal.wysiwyg) {
-    // need to loop through any WYSIWYG editor fields and update the real (hidden) text fields before saving
-    for (var instance in Drupal.wysiwyg.instances) {
-      if (Drupal.wysiwyg.instances[instance].editor != 'none') {
-        var content = Drupal.wysiwyg.instances[instance].getContent();
-        $('#' + instance).val(content);
+    autosaveSettings = settings.autosave;
+
+    $('#' + autosaveSettings.formid).not('.autosave-processed').addClass('autosave-processed').autosave({
+      interval: autosaveSettings.period * 1000, // Time in ms
+      url: autosaveSettings.url,
+      setup: function (e, o) {
+        var ignoreLink, restoreLink, callbackPath;
+
+        // If there is a saved form for this user, let him know so he can reload it
+        // if desired.
+        if (autosaveSettings.savedTimestamp) {
+          showingRestoreCommand = true;
+
+          ignoreLink = $('<a>').attr('href', '#').attr('title', Drupal.t('Ignore/Delete saved form')).html(Drupal.t('Ignore')).click(function (e) {
+            Drupal.behaviors.autosave.hideMessage();
+            return false;
+          });
+
+          callbackPath = Drupal.settings.basePath + 'autosave/restore/' + autosaveSettings.formid + '/' + autosaveSettings.savedTimestamp + '/' + autosaveSettings.formToken;
+          restoreLink = $('<a>').attr('href', callbackPath).addClass('use-ajax').attr('title', Drupal.t('Restore saved form')).html(Drupal.t('Restore')).click(function (e) {
+            Drupal.behaviors.autosave.hideMessage();
+          });
+
+          Drupal.behaviors.autosave.displayMessage(Drupal.t('This form was autosaved on ' + autosaveSettings.savedDate), {
+            // Show the message for 30 seconds, or hide it when the user starts
+            // editing the form.
+            timeout: 30000,
+            extra: $('<span id="operations">').append(ignoreLink).append(' - ').append(restoreLink)
+          });
+        }
+
+        // Wire up TinyMCE to autosave.
+        if (typeof(tinymce) !== 'undefined') {
+          setInterval(function() {
+            // Save text data from the tinymce area back to the original form element.
+            // Once it's in the original form element, autosave will notice it
+            // and do what it needs to do.
+            // Note: There seems to be a bug where after a form is restored,
+            // everything works fine but tinyMCE keeps reporting an undefined
+            // error internally.  As its code is compressed I have absolutely no
+            // way to debug this.  If you can figure it out, please file a patch.
+
+            var triggers = Drupal.settings.wysiwyg.triggers;
+            var id;
+            var field;
+            for (id in triggers) {
+              field = triggers[id].field;
+              $('#' + field).val(tinymce.get(field).getContent());
+            }
+          }, autosaveSettings.period * 1000);
+        }
+
+      },
+      save: function (e, o) {
+        Drupal.behaviors.autosave.displayMessage(Drupal.t('Form autosaved.'));
+      },
+      dirty: function (e, o) {
+        if (showingRestoreCommand) {
+          Drupal.behaviors.autosave.hideMessage();
+        }
       }
-    }
-  }
-  
-  //CKEditor support
-  if (typeof(CKEDITOR) != 'undefined') {
-    for (var instance in CKEDITOR.instances) {
-      CKEDITOR.instances[instance].updateElement();
-    }
-  }
-  
-  var serialized = $('#node-form').formHash();
-  serialized['q'] =  Drupal.settings.autosave.q;
-  $.ajax({
-    url: Drupal.settings.basePath + "autosave/handler",
-    type: "POST",
-    dataType: "xml/html/script/json",
-    data: serialized,
-    complete: function(XMLHttpRequest, textStatus) {
-      if (!Drupal.settings.autosave.hidden) Drupal.displaySaved();
-      Drupal.attachAutosave();
-    }
-  });
-}   
+    });
+  },
 
-Drupal.attachAutosave = function() {
-  setTimeout('Drupal.saveForm()', Drupal.settings.autosave.period * 1000);
+  hideMessage: function() {
+    $('#autosave-status').fadeOut('slow');
+  },
+
+  displayMessage: function(message, settings) {
+    settings = settings || {};
+    settings.timeout = settings.timeout || 3000;
+    settings.extra = settings.extra || '';
+    //settings = $.extend({}, {timeout: 3000, extra: ''}, settings);
+    var status = $('#autosave-status');
+    status.empty().append('<span id="status">' + message + '</span>');
+    if (settings.extra) {
+      status.append(settings.extra);
+    }
+    Drupal.attachBehaviors(status);
+
+    $('#autosave-status').slideDown();
+    setTimeout(Drupal.behaviors.autosave.hideMessage, settings.timeout);
+  }
 }
 
-Drupal.displaySaved = function() {
-  $('#autosave-status #status').html('Form autosaved.');
-  $('#autosave-status #operations').css('display', 'none').css('visibility', 'hidden');
-  $('#autosave-status').slideDown();
-  setTimeout("$('#autosave-status').fadeOut('slow')", 3000);  
-}
-
+})(jQuery);

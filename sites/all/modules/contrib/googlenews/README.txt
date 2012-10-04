@@ -1,6 +1,6 @@
 -- SUMMARY --
 
-The GoogleNews module generates a Google news compatible sitemap feed from your Drupal 6 site
+The GoogleNews module generates a Google news compatible sitemap feed from your Drupal 7 site
 This module is distributed 'as is' and no warranties or support can be given.
 
 -- INSTALLATION --
@@ -10,7 +10,7 @@ This module is distributed 'as is' and no warranties or support can be given.
 
 -- CONFIGURATION --
 
-* Without any configuration, the module should generate a Google News sitemap feed from the 
+* Without any configuration, the module should generate a Google News sitemap feed from the
   following URL:
 
 	http://www.yoursitename.com/googlenews.xml

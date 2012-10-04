@@ -64,6 +64,29 @@ function drupad_permission() {
 }
 
 /**
+ * Implements hook_init().
+ */
+function drupad_init() {
+  if (arg(0) == 'drupad') {
+    global $user;
+    if (!$user->uid) {
+      // Extract credentials from the request
+      $credentials = drupad_extract_credentials();
+      if ($uid = user_authenticate($credentials['login'], $credentials['pass'])) {
+        $user = user_load($uid);
+        $edit = array();
+        // Record session
+        user_login_finalize($edit);
+      }
+      else {
+        // Not authorized
+        drupad_unauthorized();
+      }
+    }
+  }
+}
+
+/**
  * Check wether the current user can access Drupad module callbacks
  *
  * This check is made upon each single request
@@ -170,7 +193,7 @@ function drupad_unauthorized() {
  * Parse an HTTP authorization header.
  */
 function drupad_parse_header($header) {
-  list($type, $credentials) = split(' ', $header);
+  list($type, $credentials) = explode(' ', $header);
   if ($type == 'Basic') {
     return explode(':', base64_decode($credentials));
   }
@@ -493,4 +516,19 @@ function drupad_request_config_callback($form, $form_state) {
   }
   return '<div id="drupal-debug-result">' . $output . '</div>';
   die();
+}
+
+/**
+ * We need to overwrite node_form_submit() to redirect node form
+ * submissions to our own node view callback once submission succeed
+ *
+ * Also it seems Drupal is detect hook_form_alter when it is in other files.
+ *
+ * @see drupad_node_form_submit()
+ */
+function drupad_form_node_form_alter(&$form, &$form_state, $form_id) {
+  // We only alter forms when the iOS app is requesting a node form
+  if (arg(0) == 'drupad' && arg(1) == 'content-forms' && isset($form['#node']->type) && $form_id == $form['#node']->type . '_node_form') {
+    drupad_alter_node_form($form, $form_state, $form_id);
+  }
 }

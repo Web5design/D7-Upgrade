@@ -85,7 +85,7 @@ function drupad_comments_list() {
     $comment->registered_name = $account->name != '' ? $account->name : t(variable_get('anonymous', 'Anonymous'));
     $comment->mail = $account->mail;
 
-    if (!is_null($account->picture) && !is_null($account->picture->uri)) {
+    if ($account->picture && !is_null($account->picture->uri)) {
       $comment->picture = file_create_url($account->picture->uri);
     }
     else {
@@ -246,7 +246,8 @@ function drupad_comments_report_and_unpublish_cid($cid) {
 }
 
 function drupad_comments_reply_cid($cid) {
-  if (!user_access('post comments') || !user_access('post comments without approval')) {
+
+  if (!user_access('post comments') || !user_access('skip comment approval')) {
     return array();
   }
 

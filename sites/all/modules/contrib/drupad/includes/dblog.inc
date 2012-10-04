@@ -14,7 +14,7 @@ function drupad_dblog() {
   $query->fields('w')->orderBy('timestamp', 'DESC')->limit(50);
 
   $result = $query->execute();
-
+  $messages = array();
   foreach ($result as $message) {
     if ($message->variables !== 'N;') {
       $message->message = t($message->message, unserialize($message->variables));
@@ -29,7 +29,7 @@ function drupad_dblog() {
     $message->username =  $account->name ? $account->name : t(variable_get('anonymous', 'Anonymous'));
     $message->mail = $account->mail ? $account->mail : NULL;
 
-    if (!is_null($account->picture) && !is_null($account->picture->uri)) {
+    if (isset($account->picture) && $account->picture && !is_null($account->picture->uri)) {
       $message->picture = file_create_url($account->picture->uri);
     }
     else {
